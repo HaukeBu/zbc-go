@@ -24,22 +24,54 @@ run:
 	@go run cmd/main.go
 
 cov:
-	cat coverage_protocol.txt coverage_dumps.txt > coverage.txt
-	rm coverage_*.txt
-
-test-client:
-	go test zbc/*.go -v
+	cat .coverage/*.txt > coverage.txt
+	rm .coverage/*.txt
 
 test-protocol:
-	go test -race -coverprofile=coverage_protocol.txt -covermode=atomic zbc/zbprotocol/*.go -v
+	go test -race -coverprofile=.coverage/protocol.txt -covermode=atomic zbc/models/zbprotocol/*.go -v
+
+test-sbe:
+	go test -race -coverprofile=.coverage/sbe.txt -covermode=atomic zbc/models/zbsbe/*.go -v
+
+test-msgpack:
+	go test -race -coverprofile=.coverage/msgpack.txt -covermode=atomic zbc/models/zbmsgpack/*.go -v
 
 test-hexdump:
-	go test -race -coverprofile=coverage_dumps.txt -covermode=atomic tests/test-zbdump/*.go -v
+	go test -race -coverprofile=.coverage/hexdump.txt -covermode=atomic tests/test-zbdump/*.go -v
 
-test-integration:
-	go test -race -coverprofile=coverage_integration.txt -covermode=atomic tests/test-broker/*.go -v
+test-exchange:	
+	go test -race -coverprofile=.coverage/exchange.txt -covermode=atomic tests/test-exchange/*.go -v
 
-test-all: test-client test-protocol test-hexdump test-integration
+test-tasksub:
+	go test -race -coverprofile=.coverage/tasksub.txt -covermode=atomic tests/test-task-subscriptions/*.go -v
+
+test-topicsub:	
+	go test -race -coverprofile=.coverage/topicsub.txt -covermode=atomic tests/test-topic-subscriptions/*.go -v
+
+test-socket:
+	go test -race -coverprofile=.coverage/socket.txt -covermode=atomic tests/test-socket/*.go -v
+
+test-topology:
+	go test -race -coverprofile=.coverage/topology.txt -covermode=atomic tests/test-topology/*.go -v
+
+test-setup:
+	mkdir -p .coverage
+	go test -race -coverprofile=.coverage/setup.txt -covermode=atomic tests/*.go -v
+
+test:
+	make test-setup
+	#make test-socket 
+	#make test-topology
+	#make test-exchange
+	#make test-tasksub
+	make test-topicsub
+	
+	#make test-protocol
+	#make test-sbe
+	#make test-msgpack
+	#make test-hexdump
+
+
 
 clean:
 	@rm -rf ./target *.tar.gz $(BINARY_NAME)

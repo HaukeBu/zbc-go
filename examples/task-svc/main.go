@@ -22,7 +22,7 @@ type StopCh chan bool
 var workers map[string]StopCh
 
 func processTask(lo string, msg *zbc.SubscriptionEvent) {
-	log.Printf("[%s] Working on task.\n", lo)
+	log.Printf("[%s] Working on test-task-subscriptions.\n", lo)
 }
 
 func openSubscription(client *zbc.Client, stopCh chan bool, topic string, lo string, tt string) {
@@ -44,7 +44,7 @@ func openSubscription(client *zbc.Client, stopCh chan bool, topic string, lo str
 			response, err := client.CompleteTask(message)
 
 			if err != nil {
-				log.Println("Completing a task went wrong.")
+				log.Println("Completing a test-task-subscriptions went wrong.")
 				log.Println(err)
 			}
 
@@ -59,12 +59,12 @@ func openSubscription(client *zbc.Client, stopCh chan bool, topic string, lo str
 				response, err := client.IncreaseTaskSubscriptionCredits(subInfo)
 
 				if err != nil {
-					log.Println("Increasing task credits went wrong.")
+					log.Println("Increasing test-task-subscriptions credits went wrong.")
 					log.Println(err)
 
 				} else {
 					credits = response.Credits
-					log.Println("Increased task credits to", credits)
+					log.Println("Increased test-task-subscriptions credits to", credits)
 				}
 			}
 
@@ -75,7 +75,7 @@ func openSubscription(client *zbc.Client, stopCh chan bool, topic string, lo str
 				log.Print("Stopping worker.")
 				_, err := client.CloseTaskSubscription(subInfo)
 				if err != nil {
-					log.Println("close task subscription request failed")
+					log.Println("close test-task-subscriptions subscription request failed")
 					log.Println(err)
 				}
 				log.Println("Gracefully shutting down the client.")

@@ -173,7 +173,7 @@ func (c *Context) NArg() int {
 	return len(c.Args())
 }
 
-// getBytes returns the nth argument, or else a blank string
+// Get returns the nth argument, or else a blank string
 func (a Args) Get(n int) string {
 	if len(a) > n {
 		return a[n]

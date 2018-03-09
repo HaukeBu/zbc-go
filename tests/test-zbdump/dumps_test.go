@@ -7,6 +7,8 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc"
 )
 
+const brokerAddr = "0.0.0.0:51015"
+
 const (
 	AppendRequest = "dumps/append-request.bin"
 
@@ -25,8 +27,8 @@ const (
 	ErrorTopicNotFound = "dumps/error-topic-not-found.bin"
 	KeepAlive          = "dumps/keep-alive.bin"
 
-	OpenTaskSubscriptionRequest   = "dumps/open-task-subscription-request.bin"
-	OpenTaskSubscriptionResponse  = "dumps/open-task-subscription-response.bin"
+	OpenTaskSubscriptionRequest   = "dumps/open-test-task-subscriptions-subscription-request.bin"
+	OpenTaskSubscriptionResponse  = "dumps/open-test-task-subscriptions-subscription-response.bin"
 	OpenTopicSubscriptionRequest  = "dumps/open-topic-subscription-request.bin"
 	OpenTopicSubscriptionResponse = "dumps/open-topic-subscription-response.bin"
 
@@ -43,7 +45,7 @@ func TestAppendRequest(t *testing.T) {
 		t.Fatalf("Cannot read file %s", AppendRequest)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(AppendRequest)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -61,7 +63,7 @@ func TestAppendRequest(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", CreateDeploymentRequest)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(CreateDeploymentRequest)
 //	if err != nil {
 //		t.Fatalf("Error reading file.", err)
@@ -79,7 +81,7 @@ func TestCreateDeploymentResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CreateDeploymentResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CreateDeploymentResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -97,7 +99,7 @@ func TestCreateTaskRequest(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CreateTaskRequest)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CreateTaskRequest)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -115,7 +117,7 @@ func TestCreateTaskResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CreateTaskResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CreateTaskResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -133,7 +135,7 @@ func TestCreateTaskResponse(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", CreateWorkflowInstanceRequest)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(CreateWorkflowInstanceRequest)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -151,7 +153,7 @@ func TestWorkflowInstanceResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CreateWorkflowInstanceResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CreateWorkflowInstanceResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -169,7 +171,7 @@ func TestCloseTaskSubscriptionRequest(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CloseTaskSubscriptionRequest)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CloseTaskSubscriptionRequest)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -187,7 +189,7 @@ func TestCloseTaskSubscriptionResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CloseTaskSubscriptionResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CloseTaskSubscriptionResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -205,7 +207,7 @@ func TestCloseTopicSubscriptionRequest(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CloseTopicSubscriptionRequest)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CloseTopicSubscriptionRequest)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -223,7 +225,7 @@ func TestCloseTopicSubscriptionResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", CloseTopicSubscriptionResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(CloseTopicSubscriptionResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -241,7 +243,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 		t.Fatalf("Cannot read file %s", ErrorTopicNotFound)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(ErrorTopicNotFound)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -259,7 +261,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", KeepAlive)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(KeepAlive)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -277,7 +279,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", OpenTaskSubscriptionRequest)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(OpenTaskSubscriptionRequest)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -295,7 +297,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", OpenTaskSubscriptionResponse)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(OpenTaskSubscriptionResponse)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -313,7 +315,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", OpenTopicSubscriptionRequest)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(OpenTopicSubscriptionRequest)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -331,7 +333,7 @@ func TestErrorTopicNotFound(t *testing.T) {
 //		t.Fatalf("Cannot read file %s", OpenTopicSubscriptionResponse)
 //	}
 //
-//	client := zbc.Client{}
+//	client := zbc.NewProtocolSerializer()
 //	message, err := client.UnmarshalFromFile(OpenTopicSubscriptionResponse)
 //	if err != nil {
 //		t.Fatalf("Error reading file.")
@@ -349,7 +351,7 @@ func TestTaskSubscriptionLockedTask(t *testing.T) {
 		t.Fatalf("Cannot read file %s", TaskSubscriptionLockedTask)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(TaskSubscriptionLockedTask)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -367,7 +369,7 @@ func TestTopologyRequest(t *testing.T) {
 		t.Fatalf("Cannot read file %s", TopologyRequest)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(TopologyRequest)
 	if err != nil {
 		t.Fatalf("Error reading file.")
@@ -385,7 +387,7 @@ func TestTopologyResponse(t *testing.T) {
 		t.Fatalf("Cannot read file %s", TopologyResponse)
 	}
 
-	client := zbc.Client{}
+	client := zbc.NewProtocolSerializer()
 	message, err := client.UnmarshalFromFile(TopologyResponse)
 	if err != nil {
 		t.Fatalf("Error reading file.")

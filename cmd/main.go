@@ -16,7 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/urfave/cli"
 	"github.com/zeebe-io/zbc-go/zbc"
-	"github.com/zeebe-io/zbc-go/zbc/zbmsgpack"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 )
 
 const (
@@ -149,9 +149,9 @@ func main() {
 					},
 				},
 				{
-					Name:    "task",
+					Name:    "test-task-subscriptions",
 					Aliases: []string{"ts"},
-					Usage:   "Create a new task using the given YAML file",
+					Usage:   "Create a new test-task-subscriptions using the given YAML file",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:   "topic, t",
@@ -245,12 +245,12 @@ func main() {
 		{
 			Name:    "subscribe",
 			Aliases: []string{"sub"},
-			Usage:   "subscribe to a task or topic",
+			Usage:   "subscribe to a test-task-subscriptions or topic",
 			Subcommands: []cli.Command{
 				{
-					Name:    "task",
+					Name:    "test-task-subscriptions",
 					Aliases: []string{"ts"},
-					Usage:   "open a task subscription",
+					Usage:   "open a test-task-subscriptions subscription",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:   "topic, t",
@@ -265,9 +265,9 @@ func main() {
 							EnvVar: "ZB_LOCK_OWNER",
 						},
 						cli.StringFlag{
-							Name:   "task-type, tt",
+							Name:   "test-task-subscriptions-type, tt",
 							Value:  "foo",
-							Usage:  "Specify task type.",
+							Usage:  "Specify test-task-subscriptions type.",
 							EnvVar: "ZB_TASK_TYPE",
 						},
 					},
@@ -275,7 +275,7 @@ func main() {
 						client, err := zbc.NewClient(conf.Broker.String())
 						isFatal(err)
 
-						subscriptionCh, subscription, err := client.TaskConsumer(c.String("topic"), c.String("lock-owner"), c.String("task-type"))
+						subscriptionCh, subscription, err := client.TaskConsumer(c.String("topic"), c.String("lock-owner"), c.String("test-task-subscriptions-type"))
 						isFatal(err)
 
 						osCh := make(chan os.Signal, 1)

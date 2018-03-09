@@ -567,7 +567,7 @@ func read_line(parser *yaml_parser_t, s []byte) []byte {
 	return s
 }
 
-// getBytes the next token.
+// Get the next token.
 func yaml_parser_scan(parser *yaml_parser_t, token *yaml_token_t) bool {
 	// Erase the token object.
 	*token = yaml_token_t{} // [Go] Is this necessary?
@@ -611,7 +611,7 @@ func yaml_parser_set_scanner_tag_error(parser *yaml_parser_t, directive bool, co
 	if directive {
 		context = "while parsing a %TAG directive"
 	}
-	return yaml_parser_set_scanner_error(parser, context, context_mark, "did not find URI escaped octet")
+	return yaml_parser_set_scanner_error(parser, context, context_mark, problem)
 }
 
 func trace(args ...interface{}) func() {
@@ -960,7 +960,7 @@ func yaml_parser_roll_indent(parser *yaml_parser_t, column, number int, typ yaml
 	return true
 }
 
-// popBytes indentation levels from the indents stack until the current level
+// Pop indentation levels from the indents stack until the current level
 // becomes less or equal to the column.  For each indentation level, append
 // the BLOCK-END token.
 func yaml_parser_unroll_indent(parser *yaml_parser_t, column int) bool {
@@ -979,7 +979,7 @@ func yaml_parser_unroll_indent(parser *yaml_parser_t, column int) bool {
 		}
 		yaml_insert_token(parser, -1, &token)
 
-		// PopBytes the indentation level.
+		// Pop the indentation level.
 		parser.indent = parser.indents[len(parser.indents)-1]
 		parser.indents = parser.indents[:len(parser.indents)-1]
 	}
@@ -1944,7 +1944,7 @@ func yaml_parser_scan_tag_handle(parser *yaml_parser_t, directive bool, start_ma
 	} else {
 		// It's either the '!' tag or not really a tag handle.  If it's a %TAG
 		// directive, it's an error.  If it's a tag token, it must be a part of URI.
-		if directive && !(s[0] == '!' && s[1] == 0) {
+		if directive && string(s) != "!" {
 			yaml_parser_set_scanner_tag_error(parser, directive,
 				start_mark, "did not find expected '!'")
 			return false
@@ -1959,6 +1959,7 @@ func yaml_parser_scan_tag_handle(parser *yaml_parser_t, directive bool, start_ma
 func yaml_parser_scan_tag_uri(parser *yaml_parser_t, directive bool, head []byte, start_mark yaml_mark_t, uri *[]byte) bool {
 	//size_t length = head ? strlen((char *)head) : 0
 	var s []byte
+	hasTag := len(head) > 0
 
 	// Copy the head if needed.
 	//
@@ -2000,10 +2001,10 @@ func yaml_parser_scan_tag_uri(parser *yaml_parser_t, directive bool, head []byte
 		if parser.unread < 1 && !yaml_parser_update_buffer(parser, 1) {
 			return false
 		}
+		hasTag = true
 	}
 
-	// Check if the tag is non-empty.
-	if len(s) == 0 {
+	if !hasTag {
 		yaml_parser_set_scanner_tag_error(parser, directive,
 			start_mark, "did not find expected tag URI")
 		return false
@@ -2030,7 +2031,7 @@ func yaml_parser_scan_uri_escapes(parser *yaml_parser_t, directive bool, start_m
 				start_mark, "did not find URI escaped octet")
 		}
 
-		// getBytes the octet.
+		// Get the octet.
 		octet := byte((as_hex(parser.buffer, parser.buffer_pos+1) << 4) + as_hex(parser.buffer, parser.buffer_pos+2))
 
 		// If it is the leading octet, determine the length of the UTF-8 sequence.
@@ -2092,7 +2093,7 @@ func yaml_parser_scan_block_scalar(parser *yaml_parser_t, token *yaml_token_t, l
 				return false
 			}
 
-			// getBytes the indentation level and eat the indicator.
+			// Get the indentation level and eat the indicator.
 			increment = as_digit(parser.buffer, parser.buffer_pos)
 			skip(parser)
 		}
@@ -2591,19 +2592,10 @@ func yaml_parser_scan_plain_scalar(parser *yaml_parser_t, token *yaml_token_t) b
 		// Consume non-blank characters.
 		for !is_blankz(parser.buffer, parser.buffer_pos) {
 
-			// Check for 'x:x' in the flow context. TODO: Fix the test "spec-08-13".
-			if parser.flow_level > 0 &&
-				parser.buffer[parser.buffer_pos] == ':' &&
-				!is_blankz(parser.buffer, parser.buffer_pos+1) {
-				yaml_parser_set_scanner_error(parser, "while scanning a plain scalar",
-					start_mark, "found unexpected ':'")
-				return false
-			}
-
 			// Check for indicators that may end a plain scalar.
 			if (parser.buffer[parser.buffer_pos] == ':' && is_blankz(parser.buffer, parser.buffer_pos+1)) ||
 				(parser.flow_level > 0 &&
-					(parser.buffer[parser.buffer_pos] == ',' || parser.buffer[parser.buffer_pos] == ':' ||
+					(parser.buffer[parser.buffer_pos] == ',' ||
 						parser.buffer[parser.buffer_pos] == '?' || parser.buffer[parser.buffer_pos] == '[' ||
 						parser.buffer[parser.buffer_pos] == ']' || parser.buffer[parser.buffer_pos] == '{' ||
 						parser.buffer[parser.buffer_pos] == '}')) {
