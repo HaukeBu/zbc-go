@@ -15,7 +15,7 @@ before_script:
   - docker run --name zeebe -p 51015:51015 -d camunda/zeebe:SNAPSHOT
 
 env:
-  - ZBC_LOG=stdout
+  - ZBC_LOG=
 
 script:
   - dep ensure

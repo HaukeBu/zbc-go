@@ -61,16 +61,16 @@
 
 ...
 
-[] Extension of credits should be easier to manipulate
+[x] Extension of credits should be easier to manipulate
 
-[] Move closing of subscription to TaskSubscription object
+[x] Move closing of subscription to TaskSubscription object
 
-[] Move closing of subscription to TopicSubscription object
+[x] Move closing of subscription to TopicSubscription object
 
 
 
-[] Add benchmark for workflow instances
+[x] Add benchmark for workflow instances
 
-[] Test for error on TopicSubscription handler
+[x] Test for error on TopicSubscription handler
 
 

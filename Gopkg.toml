@@ -30,10 +30,6 @@
   name = "code.cloudfoundry.org/go-diodes"
 
 [[constraint]]
-  name = "github.com/BurntSushi/toml"
-  version = "0.3.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/rs/zerolog"
 
