@@ -55,11 +55,10 @@ func SetLogLevel() {
 
 // InitLogger will create package logger based on ZBC_LOG env variable.
 func InitLogger() {
-	zerolog.TimeFieldFormat = ""
-
+	zerolog.TimeFieldFormat = time.StampNano
 	var ll zerolog.Logger
 
-	d := diodes.NewManyToOne(1000, diodes.AlertFunc(func(missed int) {
+	d := diodes.NewManyToOne(100000, diodes.AlertFunc(func(missed int) {
 		fmt.Printf("Dropped %d messages\n", missed)
 	}))
 
@@ -67,6 +66,7 @@ func InitLogger() {
 
 	case "stdout": // export ZBC_LOG=stdout
 		ll = zerolog.New(diode.NewWriter(zerolog.ConsoleWriter{Out: os.Stdout}, d, 10*time.Millisecond)).With().Timestamp().Logger()
+		//ll = ll.With().Str("component", string(GetGID())).Logger()
 		break
 
 	case "snapshot": // export ZBC_LOG=snapshot://$GOPATH/src/github.com/zbc-go/.snapshots

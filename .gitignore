@@ -5,3 +5,7 @@ coverage*
 dist/
 trash/
 ./config.toml
+cpu.prof
+mem.prof
+*.test
+trace.out

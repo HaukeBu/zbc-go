@@ -240,7 +240,7 @@ func (rf *RequestFactory) CloseTaskSubscriptionRequest(ts *zbmsgpack.TaskSubscri
 	return &msg
 }
 
-func (rf *RequestFactory) CloseTopicSubscriptionRequest(ts *zbmsgpack.TopicSubscription) *Message {
+func (rf *RequestFactory) CloseTopicSubscriptionRequest(ts *zbmsgpack.TopicSubscriptionCloseRequest) *Message {
 	var msg Message
 
 	b, err := msgpack.Marshal(ts)
@@ -284,14 +284,14 @@ func (rf *RequestFactory) OpenTopicSubscriptionRequest(partitionID uint16, topic
 	return &msg
 }
 
-func (rf *RequestFactory) TopicSubscriptionAckRequest(ts *zbmsgpack.TopicSubscription, s *zbsubscriptions.SubscriptionEvent) *Message {
-	tsa := &zbmsgpack.TopicSubscriptionAck{
-		Name:        ts.SubscriptionName,
-		AckPosition: s.Event.Position,
+func (rf *RequestFactory) TopicSubscriptionAckRequest(subscriptionName string, position uint64, partitionID uint16) *Message {
+	tsa := &zbmsgpack.TopicSubscriptionAckRequest{
+		Name:        subscriptionName,
+		AckPosition: position,
 		State:       zbcommon.TopicSubscriptionAckState,
 	}
 	execCommandRequest := &zbsbe.ExecuteCommandRequest{
-		PartitionId: s.Event.PartitionId,
+		PartitionId: partitionID,
 		Position:    0,
 		EventType:   zbsbe.EventType.SUBSCRIPTION_EVENT,
 	}
@@ -309,7 +309,7 @@ func (rf *RequestFactory) TopicSubscriptionAckRequest(ts *zbmsgpack.TopicSubscri
 	return &msg
 }
 
-func (rf *RequestFactory) CreateTopicRequest(topic *zbmsgpack.Topic) *Message {
+func (rf *RequestFactory) CreateTopicRequest(topic *zbmsgpack.CreateTopic) *Message {
 	execCommandRequest := &zbsbe.ExecuteCommandRequest{
 		PartitionId: 0,
 		Position:    0,

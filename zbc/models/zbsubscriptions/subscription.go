@@ -1,63 +1,56 @@
 package zbsubscriptions
 
 import (
-	"sync"
+	"sync/atomic"
+	"github.com/zeebe-io/zbc-go/zbc/common"
 )
 
 type SubscriptionPipelineCtrl struct {
-	outCh      chan *SubscriptionEvent
-	consumerCh map[uint16]chan *SubscriptionEvent
+	MessagesProcessed uint64
+	OutCh             chan *SubscriptionEvent
+	Partitions []uint16
 }
 
-
-func (sc *SubscriptionPipelineCtrl) StopPipeline() {
-	for _, ch := range sc.consumerCh {
-		close(ch)
-	}
-	close(sc.outCh)
+func (sc *SubscriptionPipelineCtrl) CloseOutChannel() {
+	zbcommon.ZBL.Debug().Msg("Stoping pipeline")
+	close(sc.OutCh)
 }
 
-func (sc *SubscriptionPipelineCtrl) StartPipeline() {
-	var wg sync.WaitGroup
-	out := make(chan *SubscriptionEvent)
-
-	// Start an output goroutine for each input channel in cs.  output
-	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan *SubscriptionEvent) {
-		for n := range c {
-			out <- n
-		}
-		wg.Done()
-	}
-
-	wg.Add(len(sc.consumerCh))
-	for _, c := range sc.consumerCh {
-		go output(c)
-	}
-
-	// Start a goroutine to close out once all the output goroutines are
-	// done.  This must start after the wg.Add call.
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-
-	sc.outCh = out
+func (sc *SubscriptionPipelineCtrl) AddPartition(partitionID uint16) {
+	zbcommon.ZBL.Debug().Msg("Adding partition to subscription")
+	sc.Partitions = append(sc.Partitions, partitionID)
 }
 
-func (sc *SubscriptionPipelineCtrl) AddPartitionChannel(partitionID uint16, ch chan *SubscriptionEvent) {
-	sc.consumerCh[partitionID] = ch
-}
-
-
+// GetNextMessage retrieves next message from the channel and gives us the guarantee that the returned message
+// will not be null, however this routine will block the calling thread.
 func (sc *SubscriptionPipelineCtrl) GetNextMessage() *SubscriptionEvent {
-	return <-sc.outCh
+	atomic.AddUint64(&sc.MessagesProcessed, 1)
+	zbcommon.ZBL.Debug().Str("component", "SubscriptionPipelineCtrl").Str("method", "GetNextMessage").Msgf("fetching new message")
+	count := atomic.LoadUint64(&sc.MessagesProcessed)
+	zbcommon.ZBL.Debug().Str("component", "SubscriptionPipelineCtrl").Str("method", "GetNextMessage").Msgf("message count :: %+v", count)
+	for {
+		msg, ok := <-sc.OutCh // MARK: this should not be nil
+		if !ok {
+			zbcommon.ZBL.Error().Msg("received nil message")
+			continue
+		}
+		return msg
+	}
+}
+
+func (ts *SubscriptionPipelineCtrl) EventsToProcess(blockSize, wantToProcess, processed uint64) uint64 {
+	remaining := wantToProcess - processed
+	if remaining > blockSize {
+		return blockSize
+	} else {
+		return remaining
+	}
 }
 
 
 func NewSubscriptionPipelineCtrl() *SubscriptionPipelineCtrl {
 	return &SubscriptionPipelineCtrl{
-		outCh:      make(chan *SubscriptionEvent),
-		consumerCh: make(map[uint16]chan *SubscriptionEvent),
+		MessagesProcessed: 0,
+		OutCh:             make(chan *SubscriptionEvent, zbcommon.RequestQueueSize),
 	}
 }

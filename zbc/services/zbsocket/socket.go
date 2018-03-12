@@ -72,16 +72,36 @@ func (s *socket) receiver() {
 				continue
 			}
 
+
 			if headers.IsSingleMessage() && message != nil && len(message.Data) > 0 {
 				event := message.SbeMessage.(*zbsbe.SubscribedEvent)
-				if task := responseHandler.UnmarshalTask(message); task != nil {
-					zbcommon.ZBL.Debug().Msg("task received -> dispatching task")
-					s.DispatchTaskEvent(event.SubscriberKey, event, task)
-				} else {
-					zbcommon.ZBL.Debug().Msg("event received -> dispatching event")
-					s.DispatchTopicEvent(event.SubscriberKey, event)
-					zbcommon.ZBL.Debug().Msg("event dispatched")
+				partitionID := message.SbeMessage.(*zbsbe.SubscribedEvent).PartitionId
+				zbcommon.ZBL.Debug().Str("component", "socket").Msgf("subscriptions event from partitionID %d, subscriptions type %d", partitionID, event.SubscriptionType)
+				switch event.SubscriptionType {
+					case zbsbe.SubscriptionType.TASK_SUBSCRIPTION:
+						zbcommon.ZBL.Debug().Str("component", "socket").Msg("task received -> dispatching task")
+						task := responseHandler.UnmarshalTask(message)
+						if task == nil {
+							zbcommon.ZBL.Error().Str("component", "socket").Msg("task is nil")
+							continue
+						}
+						err := s.DispatchTaskEvent(event.SubscriberKey, event, task)
+						if err != nil {
+							zbcommon.ZBL.Debug().Str("component", "socket").Msg("dispatching failed")
+						} else {
+							zbcommon.ZBL.Debug().Str("component", "socket").Msg("task dispatched")
+						}
+
+						break
+					case zbsbe.SubscriptionType.TOPIC_SUBSCRIPTION:
+						zbcommon.ZBL.Debug().Str("component", "socket").Msg("event received -> dispatching event")
+						s.DispatchTopicEvent(event.SubscriberKey, event)
+						zbcommon.ZBL.Debug().Str("component", "socket").Msg("event dispatched")
+						break
+					default:
+						zbcommon.ZBL.Debug().Str("component", "socket").Msg("undispatchable message received")
 				}
+
 			}
 		}
 	}

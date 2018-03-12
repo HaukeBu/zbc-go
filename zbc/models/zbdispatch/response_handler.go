@@ -42,8 +42,8 @@ func (rf *ResponseHandler) UnmarshalTopology(msg *Message) *zbmsgpack.ClusterTop
 	return &ct
 }
 
-func (rf *ResponseHandler) UnmarshalTopic(msg *Message) *zbmsgpack.Topic {
-	var topic zbmsgpack.Topic
+func (rf *ResponseHandler) UnmarshalTopic(msg *Message) *zbmsgpack.CreateTopic {
+	var topic zbmsgpack.CreateTopic
 	msgpack.Unmarshal(msg.Data, &topic)
 
 	return &topic
@@ -103,8 +103,8 @@ func (rf *ResponseHandler) UnmarshalWorkflowInstance(m *Message) *zbmsgpack.Work
 	return nil
 }
 
-func (rf *ResponseHandler) UnmarshalTopicSubAck(m *Message) *zbmsgpack.TopicSubscriptionAck {
-	var d zbmsgpack.TopicSubscriptionAck
+func (rf *ResponseHandler) UnmarshalTopicSubAck(m *Message) *zbmsgpack.TopicSubscriptionAckRequest {
+	var d zbmsgpack.TopicSubscriptionAckRequest
 	err := msgpack.Unmarshal(m.Data, &d)
 	if err != nil {
 		return nil

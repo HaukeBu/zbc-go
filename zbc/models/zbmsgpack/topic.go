@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-type Topic struct {
+type CreateTopic struct {
 	Name       string `msgpack:"name"`
 	State      string `msgpack:"state"`
 	Partitions int    `msgpack:"partitions"`
 }
 
-func (t *Topic) String() string {
+func (t *CreateTopic) String() string {
 	b, err := json.MarshalIndent(t, "", "  ")
 	if err != nil {
 		return fmt.Sprintf("json marshaling failed\n")
@@ -19,8 +19,8 @@ func (t *Topic) String() string {
 	return fmt.Sprintf("%+v", string(b))
 }
 
-func NewTopic(name, state string, partitionsNum int) *Topic {
-	return &Topic{
+func NewTopic(name, state string, partitionsNum int) *CreateTopic {
+	return &CreateTopic{
 		name,
 		state,
 		partitionsNum,

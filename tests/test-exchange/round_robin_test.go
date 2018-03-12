@@ -13,23 +13,6 @@ import (
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
-func checkRoundRobinSequence(order uint16, sequence []uint16) bool {
-	sequenced := true
-	last := sequence[0]
-	for i := 1; i < len(sequence); i++ {
-		if last == order && sequence[i] != 0 {
-			sequenced = false
-			break
-		}
-		if last != order && last+1 != sequence[i] {
-			sequenced = false
-			break
-		}
-		last = sequence[i]
-	}
-	return sequenced
-}
-
 func TestRoundRobin(t *testing.T) {
 	client := &zbexchange.ExchangeSvc{
 		LikeTopologySvc:zbtopology.NewTopologySvc(BrokerAddr),
@@ -70,5 +53,5 @@ func TestRoundRobin(t *testing.T) {
 		}
 	}
 
-	Assert(t, true, checkRoundRobinSequence(partitionsLength, sequence), true)
+	Assert(t, true, CheckRoundRobinSequence(partitionsLength, sequence), true)
 }

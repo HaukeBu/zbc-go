@@ -16,20 +16,35 @@ import (
 )
 
 func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
+	t.Log("Creating client")
 	zbClient, err := zbc.NewClient(BrokerAddr)
 	Assert(t, nil, err, true)
 	Assert(t, nil, zbClient, false)
+	t.Log("Client created")
 
-	zbClient.CreateWorkflowFromFile(TopicName, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
+	t.Log("Creating topic")
+	hash := RandStringBytes(25)
+	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
+	Assert(t, nil, err, true)
+	Assert(t, nil, topic, false)
+	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
 
+	t.Log("Creating workflow")
+	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
+	Assert(t, nil, err, true)
+	Assert(t, nil, workflow, false)
+	Assert(t, nil, workflow.State, false)
+	Assert(t, zbcommon.DeploymentCreated, workflow.State, true)
+	t.Log("Workflow created")
+	
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
 
 	instance := zbc.NewWorkflowInstance("demoProcess", -1, payload)
 	wfStart := time.Now()
-	t.Log("Creating 50 workflow instances")
-	for i := 0; i < 50; i++ {
-		createdInstance, err := zbClient.CreateWorkflowInstance(TopicName, instance)
+	t.Log("Creating 1000 workflow instances")
+	for i := 0; i < 1000; i++ {
+		createdInstance, err := zbClient.CreateWorkflowInstance(hash, instance)
 		Assert(t, nil, err, true)
 		Assert(t, nil, createdInstance, false)
 		Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
@@ -39,24 +54,26 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 	mut := &sync.Mutex{}
 	var partitionIDs []uint16
 	var ops uint64
-	subscription, _ := zbClient.TaskSubscription(TopicName, "task_subscription_test", "foo",
+	subscription, _ := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
 
-			// QUESTION: Do we support this behaviour?
+			// MARK: User is responsible for this kind of behaviour.
 			mut.Lock()
 			partitionIDs = append(partitionIDs, event.Event.PartitionId)
 			mut.Unlock()
 
-			// spew.Dump(event.Event.PartitionId)
-			client.CompleteTask(event)
 		})
+
+	t.Log("Starting to consume subscription")
+	go subscription.Start()
+
 
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed tasks ", op)
 
-		if op >= 25 {
+		if op >= 1000 {
 			errs := zbClient.CloseTaskSubscription(subscription)
 			Assert(t, 0, len(errs), true)
 			break
@@ -65,6 +82,6 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 	}
 
 	mut.Lock()
-	Assert(t, true, len(partitionIDs) >= 25, true)
+	Assert(t, true, len(partitionIDs) >= 1000, true)
 	mut.Unlock()
 }

@@ -27,7 +27,7 @@ var (
 // Topology Service
 var (
 	ErrPartitionsNotFound = errors.New("partitions for topic not found")
-	ErrNoBrokersFound     = errors.New("no brokers found")
+	ErrNoBrokersFound     = errors.New("broker not found")
 )
 
 // RetryDeadlineReached is error which occurs when requestWrapper failed multiple times unsuccessfully.
@@ -54,4 +54,5 @@ var (
 
 var (
 	ErrSubscriptionPipelineFailed = errors.New("opening on all partitions failed")
+	ErrSubscriptionClosed = errors.New("error processing event in handler, subscription closed")
 )

@@ -25,15 +25,26 @@ func TaskHandler(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.Subscriptio
 func TestTaskSubscriptionUnscopedCallback(t *testing.T) {
 	taskTopic = t
 
+	t.Log("Creating client")
 	zbClient, err := zbc.NewClient(BrokerAddr)
 	Assert(t, nil, err, true)
 	Assert(t, nil, zbClient, false)
+	t.Log("Client created")
 
-	workflow, err := zbClient.CreateWorkflowFromFile(TopicName, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
+	t.Log("Creating topic")
+	hash := RandStringBytes(25)
+	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
+	Assert(t, nil, err, true)
+	Assert(t, nil, topic, false)
+	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+
+	t.Log("Creating workflow")
+	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
 	Assert(t, nil, err, true)
 	Assert(t, nil, workflow, false)
 	Assert(t, nil, workflow.State, false)
 	Assert(t, zbcommon.DeploymentCreated, workflow.State, true)
+	t.Log("Workflow created")
 
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
@@ -43,20 +54,24 @@ func TestTaskSubscriptionUnscopedCallback(t *testing.T) {
 	wfStart := time.Now()
 	t.Log("Creating 10 workflow instances")
 	for i := 0; i < 10; i++ {
-		createdInstance, err := zbClient.CreateWorkflowInstance(TopicName, instance)
+		createdInstance, err := zbClient.CreateWorkflowInstance(hash, instance)
 		Assert(t, nil, err, true)
 		Assert(t, nil, createdInstance, false)
 		Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
 	}
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
-	subscription, err := zbClient.TaskSubscription(TopicName, "task_subscription_test", "foo", TaskHandler)
+	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30, TaskHandler)
+
+	t.Log("Starting to consume subscription")
+	go subscription.Start()
+
 
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed tasks ", op)
 		if op >= 1 {
-			errs := zbClient.CloseTaskSubscription(subscription)
+			errs := subscription.Close()
 			Assert(t, 0, len(errs), true)
 			break
 		}

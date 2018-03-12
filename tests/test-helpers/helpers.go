@@ -22,7 +22,7 @@ const TopicName = "default-topic"
 
 var (
 	BrokerAddr         = "0.0.0.0:51015"
-	NumberOfPartitions = 3
+	NumberOfPartitions = 1
 )
 
 func init() {
@@ -63,4 +63,21 @@ func Assert(t *testing.T, exp, got interface{}, equal bool) {
 		debug.PrintStack()
 		t.Fatalf("\x1b[31;1mExpecting '%v' got '%v'\x1b[0m\n", exp, got)
 	}
+}
+
+func CheckRoundRobinSequence(order uint16, sequence []uint16) bool {
+	sequenced := true
+	last := sequence[0]
+	for i := 1; i < len(sequence); i++ {
+		if last == order && sequence[i] != 0 {
+			sequenced = false
+			break
+		}
+		if last != order && last+1 != sequence[i] {
+			sequenced = false
+			break
+		}
+		last = sequence[i]
+	}
+	return sequenced
 }

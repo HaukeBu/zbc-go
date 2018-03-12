@@ -83,6 +83,7 @@ func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.Workf
 	if err != nil {
 		return nil, err
 	}
+	zbcommon.ZBL.Debug().Msg("workflow instance created")
 	return rm.UnmarshalWorkflowInstance(resp), nil
 }
 
@@ -107,46 +108,52 @@ func (rm *ExchangeSvc) FailTask(task *zbsubscriptions.SubscriptionEvent) (*zbmsg
 }
 
 // OpenTaskPartition will open a test-task-subscriptions subscription on one partition.
-func (rm *ExchangeSvc) OpenTaskPartition(partitionID uint16, lockOwner, taskType string, credits int32) (*zbmsgpack.TaskSubscriptionInfo, chan *zbsubscriptions.SubscriptionEvent) {
-	subscriptionCh := make(chan *zbsubscriptions.SubscriptionEvent, zbcommon.SubscriptionPipelineQueueSize)
+func (rm *ExchangeSvc) OpenTaskPartition(
+		ch chan *zbsubscriptions.SubscriptionEvent,
+		partitionID uint16,
+		lockOwner,
+		taskType string,
+		credits int32) *zbmsgpack.TaskSubscriptionInfo {
 
 	message := rm.OpenTaskSubscriptionRequest(partitionID, lockOwner, taskType, credits)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 
 	if err != nil {
-		return nil, nil
+		return nil
 	}
 
 	if taskSubInfo := rm.UnmarshalTaskSubscriptionInfo(resp); taskSubInfo != nil {
-		// MARK: the caller is responsible for attaching subscriptionCh to the right socket
-		request.Sock.AddTaskSubscription(taskSubInfo.SubscriberKey, subscriptionCh)
-		return taskSubInfo, subscriptionCh
+		request.Sock.AddTaskSubscription(taskSubInfo.SubscriberKey, ch)
+		return taskSubInfo
 	}
-	return nil, nil
+	return nil
 }
 
-func (rm *ExchangeSvc) OpenTopicPartition(partitionID uint16, topic, subscriptionName string, startPosition int64) (*zbmsgpack.TopicSubscriptionInfo, chan *zbsubscriptions.SubscriptionEvent) {
-	subscriptionCh := make(chan *zbsubscriptions.SubscriptionEvent, zbcommon.SubscriptionPipelineQueueSize)
+func (rm *ExchangeSvc) OpenTopicPartition(
+		ch chan *zbsubscriptions.SubscriptionEvent,
+		partitionID uint16,
+		topic, subscriptionName string,
+		startPosition int64) *zbmsgpack.TopicSubscriptionInfo {
 
 	message := rm.OpenTopicSubscriptionRequest(partitionID, topic, subscriptionName, startPosition)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {
-		return nil, nil
+		return nil
 	}
 
 	subscriberKey := (resp.SbeMessage).(*zbsbe.ExecuteCommandResponse).Key
 	if topicSubInfo := rm.UnmarshalTopicSubscriptionInfo(resp); topicSubInfo != nil {
-		request.Sock.AddTopicSubscription(subscriberKey, subscriptionCh)
+		request.Sock.AddTopicSubscription(subscriberKey, ch)
 		topicSubInfo.SubscriberKey = subscriberKey
-		return topicSubInfo, subscriptionCh
+		return topicSubInfo
 	}
-	return nil, nil
+	return nil
 }
 
 func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(task *zbmsgpack.TaskSubscriptionInfo) (*zbmsgpack.TaskSubscriptionInfo, error) {
-	zbcommon.ZBL.Debug().Msgf("increasing task credits ", task.Credits)
+	zbcommon.ZBL.Debug().Msgf("increasing task credits :: %+v", task)
 	message := rm.IncreaseTaskSubscriptionCreditsRequest(task)
 
 	request := zbsocket.NewRequestWrapper(message)
@@ -157,6 +164,7 @@ func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(task *zbmsgpack.TaskSubsc
 		return nil, err
 	}
 
+	zbcommon.ZBL.Debug().Msgf("credits increased")
 	return rm.UnmarshalTaskSubscriptionInfo(resp), nil
 }
 
@@ -169,7 +177,7 @@ func (rm *ExchangeSvc) CloseTaskSubscriptionPartition(task *zbmsgpack.TaskSubscr
 	return resp, err
 }
 
-func (rm *ExchangeSvc) CloseTopicSubscriptionPartition(topicPartition *zbmsgpack.TopicSubscription) (*zbdispatch.Message, error) {
+func (rm *ExchangeSvc) CloseTopicSubscriptionPartition(topicPartition *zbmsgpack.TopicSubscriptionCloseRequest) (*zbdispatch.Message, error) {
 	message := rm.CloseTopicSubscriptionRequest(topicPartition)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
@@ -178,14 +186,14 @@ func (rm *ExchangeSvc) CloseTopicSubscriptionPartition(topicPartition *zbmsgpack
 	return resp, err
 }
 
-func (rm *ExchangeSvc) TopicSubscriptionAck(ts *zbmsgpack.TopicSubscription, s *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAck, error) {
-	message := rm.TopicSubscriptionAckRequest(ts, s)
+func (rm *ExchangeSvc) TopicSubscriptionAck(subName string, s *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAckRequest, error) {
+	message := rm.TopicSubscriptionAckRequest(subName, s.Event.Position, s.Event.PartitionId)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	return rm.UnmarshalTopicSubAck(resp), err
 }
 
-func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int) (*zbmsgpack.Topic, error) {
+func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int) (*zbmsgpack.CreateTopic, error) {
 	topic := zbmsgpack.NewTopic(name, zbcommon.TopicCreate, partitionNum)
 	message := rm.CreateTopicRequest(topic)
 	request := zbsocket.NewRequestWrapper(message)

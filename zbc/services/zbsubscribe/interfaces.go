@@ -6,11 +6,13 @@ import (
 
 // LikeTaskSubscriptionSvc defines behaviour of TaskSubscriptionSvc.
 type LikeTaskSubscriptionSvc interface {
-	TaskSubscription(topic, lockOwner, taskType string, cb TaskSubscriptionCallback) (*TaskSubscription, error)
+	TaskSubscription(topic, lockOwner, taskType string, credits int32, cb TaskSubscriptionCallback) (*TaskSubscription, error)
 	CloseTaskSubscription(task *TaskSubscription) []error
 
-	// TODO: CompleteTask(test-task-subscriptions *SubscriptionEvent) (*zbmsgpack.Task, error)
-	// TODO: FailTask(test-task-subscriptions *zbcommon.SubscriptionEvent) (*zbmsgpack.Task, error)
+	// TODO: Move CompleteTask behind LikeTaskSubscriptionSvc interface
+	// CompleteTask(test-task-subscriptions *SubscriptionEvent) (*zbmsgpack.Task, error)
+	// TODO: Move FailTask behind LikeTaskSubscriptionSvc interface
+	// FailTask(test-task-subscriptions *zbcommon.SubscriptionEvent) (*zbmsgpack.Task, error)
 }
 
 
@@ -19,7 +21,8 @@ type LikeTopicSubscriptionSvc interface {
 	TopicSubscription(topic, subName string, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error)
 	CloseTopicSubscription(sub *TopicSubscription) []error
 
-	//TopicSubscriptionAck(ts *zbmsgpack.TopicSubscription, s *SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAck, error)
+	// TODO: Move TopicSubscriptionAckRequest behind this interface
+	// TopicSubscriptionAckRequest(ts *zbmsgpack.TopicSubscriptionCloseRequest, s *SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAckRequest, error)
 }
 
 // ZeebeAPI defines behaviour of client API behaviour.

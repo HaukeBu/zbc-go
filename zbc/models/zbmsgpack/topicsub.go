@@ -5,22 +5,7 @@ import (
 	"fmt"
 )
 
-//type TopicSubscriptionInfo struct {
-//	Subs []TopicSubscription
-//}
-//
-//func (tsi *TopicSubscriptionInfo) AddSubInfo(sub TopicSubscription) {
-//	tsi.Subs = append(tsi.Subs, sub)
-//}
-//
-//// NewTopicSubscriptionInfo is a constructor object for TopicSubscriptionInfo
-//func NewTopicSubscriptionInfo() *TopicSubscriptionInfo {
-//	return &TopicSubscriptionInfo{
-//		Subs: make([]TopicSubscription, 0),
-//	}
-//}
-
-// OpenTopicSubscriptionInfo is used to open a topic subscription.
+// TopicSubscriptionInfo is used to open a topic subscription.
 type TopicSubscriptionInfo struct {
 	StartPosition    int64  `msgpack:"startPosition"`
 	PrefetchCapacity int32  `msgpack:"prefetchCapacity"`
@@ -40,14 +25,14 @@ func (t *TopicSubscriptionInfo) String() string {
 	return fmt.Sprintf("%+v", string(b))
 }
 
-// TopicSubscriptionAck is used to acknowledge receiving of an event.
-type TopicSubscriptionAck struct {
+// TopicSubscriptionAckRequest is used to acknowledge receiving of an event.
+type TopicSubscriptionAckRequest struct {
 	Name        string `msgpack:"name"`
 	AckPosition uint64 `msgpack:"ackPosition"`
 	State       string `msgpack:"state"`
 }
 
-func (t *TopicSubscriptionAck) String() string {
+func (t *TopicSubscriptionAckRequest) String() string {
 	b, err := json.MarshalIndent(t, "", "  ")
 	if err != nil {
 		return fmt.Sprintf("json marshaling failed\n")
@@ -55,7 +40,7 @@ func (t *TopicSubscriptionAck) String() string {
 	return fmt.Sprintf("%+v", string(b))
 }
 
-type TopicSubscription struct {
+type TopicSubscriptionCloseRequest struct {
 	TopicName     string `msgpack:"topicName"`
 	PartitionID   uint16 `msgpack:"partitionId"`
 	SubscriberKey uint64 `msgpack:"subscriberKey"`
@@ -63,7 +48,7 @@ type TopicSubscription struct {
 	SubscriptionName string `msgpack:"-"`
 }
 
-func (t *TopicSubscription) String() string {
+func (t *TopicSubscriptionCloseRequest) String() string {
 	b, err := json.MarshalIndent(t, "", "  ")
 	if err != nil {
 		return fmt.Sprintf("json marshaling failed\n")

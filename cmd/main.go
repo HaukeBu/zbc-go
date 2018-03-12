@@ -379,7 +379,7 @@ func main() {
 
 						w := tabwriter.NewWriter(os.Stdout, 0, 0, 10, ' ', tabwriter.TabIndent)
 
-						fmt.Fprintln(w, "Topic Name\tBroker\tPartitionID")
+						fmt.Fprintln(w, "CreateTopic Name\tBroker\tPartitionID")
 
 						for topicName, partitionIDs := range (*topology).PartitionIDByTopicName {
 							for _, partitionID := range partitionIDs {

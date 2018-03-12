@@ -16,49 +16,55 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 	if err != nil {
 		return nil, err
 	}
+
+	if partitions == nil || len(*partitions) == 0 {
+		zbcommon.ZBL.Error().Msgf("topic %s topology not found", topic)
+		return nil, zbcommon.BrokerNotFound
+	}
+
 	topicSubscription := NewTopicSubscription()
+	zbcommon.ZBL.Debug().Msg("new topic subscription created")
 
 	for partitionID := range *partitions {
-		sub, ch := ts.OpenTopicPartition(partitionID, topic, subName, startPosition)
-		if sub != nil && ch != nil {
-			closeableSub := &zbmsgpack.TopicSubscription{
+		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, startPosition)
+		if sub != nil {
+			closeRequest := &zbmsgpack.TopicSubscriptionCloseRequest{
 				TopicName:        topic,
 				PartitionID:      partitionID,
 				SubscriberKey:    sub.SubscriberKey,
 				SubscriptionName: subName,
 			}
 
-			topicSubscription.AddSubscription(partitionID, closeableSub)
-			topicSubscription.AddPartitionChannel(partitionID, ch)
+			topicSubscription.AddCloseRequest(partitionID, closeRequest)
+			topicSubscription.AddSubscriptionInfo(partitionID, sub)
+			topicSubscription.AddPartition(partitionID)
 		} else {
-			zbcommon.ZBL.Debug().Msg("there was an error during opening topic subscription")
-			// TODO: send close to all previous subs
+			zbcommon.ZBL.Debug().Msg("there was an error during opening topic subscription, closing all partitions")
+			topicSubscription.Close()
 			return nil, zbcommon.ErrSubscriptionPipelineFailed
 		}
 	}
 
-	topicSubscription.StartPipeline()
 	return topicSubscription, nil
 }
 
 func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
 	zbcommon.ZBL.Debug().Msg("Opening topic subscription")
 	topicConsumer, err := ts.topicConsumer(topic, subName, startPosition)
-	zbcommon.ZBL.Debug().Msg("Topic subscription opened.")
+	zbcommon.ZBL.Debug().Msg("CreateTopic subscription opened.")
 
 	if err != nil {
 		return nil, err
 	}
-	topicConsumer = topicConsumer.WithCallback(cb)
-	topicConsumer.StartCallbackHandler(ts)
+	topicConsumer = topicConsumer.WithCallback(cb).WithTopicSubscriptionSvc(ts)
 
 	return topicConsumer, err
 }
 
 func (ts *TopicSubscriptionSvc) CloseTopicSubscription(sub *TopicSubscription) []error {
 	var errs []error
-	for _, taskSub := range sub.Subscriptions {
-		_, err := ts.CloseTopicSubscriptionPartition(taskSub)
+	for _, request := range sub.CloseRequests {
+		_, err := ts.CloseTopicSubscriptionPartition(request)
 		if err != nil {
 			errs = append(errs, err)
 		}

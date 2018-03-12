@@ -23,39 +23,27 @@ func NewTopicSubscriptionCallbackCtrl(cb TopicSubscriptionCallback) *TopicSubscr
 	}
 }
 
-type TopicSubscriptionAckCtrl struct {
-	messageCount  uint64
-	Subscriptions map[uint16]*zbmsgpack.TopicSubscription
+type TopicSubscriptionCtrl struct {
+	CloseRequests     map[uint16]*zbmsgpack.TopicSubscriptionCloseRequest
+	SubscriptionsInfo map[uint16]*zbmsgpack.TopicSubscriptionInfo
 }
 
-func (tc *TopicSubscriptionAckCtrl) PeekMessageCount() uint64 {
-	return tc.messageCount
+func (ts *TopicSubscriptionCtrl) AddSubscriptionInfo(partition uint16, request *zbmsgpack.TopicSubscriptionInfo) {
+	ts.SubscriptionsInfo[partition] = request
 }
 
-func (tc *TopicSubscriptionAckCtrl) AddSubscription(partition uint16, sub *zbmsgpack.TopicSubscription) {
-	tc.Subscriptions[partition] = sub
+func (tc *TopicSubscriptionCtrl) AddCloseRequest(partition uint16, sub *zbmsgpack.TopicSubscriptionCloseRequest) {
+	tc.CloseRequests[partition] = sub
 }
 
-func (tc *TopicSubscriptionAckCtrl) GetSubscription(partition uint16) (*zbmsgpack.TopicSubscription, bool) {
-	value, ok := tc.Subscriptions[partition]
+func (tc *TopicSubscriptionCtrl) GetSubscriptionCloseRequest(partition uint16) (*zbmsgpack.TopicSubscriptionCloseRequest, bool) {
+	value, ok := tc.CloseRequests[partition]
 	return value, ok
 }
 
-func (tc *TopicSubscriptionAckCtrl) IncrementMessageCount() {
-	tc.messageCount++
-}
-
-func (tc *TopicSubscriptionAckCtrl) GetMessageCount() uint64 {
-	return tc.messageCount
-}
-
-func (tc *TopicSubscriptionAckCtrl) NormalizeMessageCount() {
-	tc.messageCount /= 3
-}
-
-func NewTopicSubscriptionAckCtrl() *TopicSubscriptionAckCtrl {
-	return &TopicSubscriptionAckCtrl{
-		messageCount:  0,
-		Subscriptions: make(map[uint16]*zbmsgpack.TopicSubscription),
+func NewTopicSubscriptionAckCtrl() *TopicSubscriptionCtrl {
+	return &TopicSubscriptionCtrl{
+		CloseRequests: make(map[uint16]*zbmsgpack.TopicSubscriptionCloseRequest),
+		SubscriptionsInfo: make(map[uint16]*zbmsgpack.TopicSubscriptionInfo),
 	}
 }

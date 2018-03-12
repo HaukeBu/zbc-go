@@ -8,7 +8,6 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsocket"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbtransport"
-	"time"
 	"sync"
 )
 
@@ -135,32 +134,35 @@ func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
 	}
 
 	if svc.RoundRobin == nil {
+		zbcommon.ZBL.Debug().Msg("round robing controller is nil ... initializing")
 		svc.Lock()
 		svc.RoundRobin = NewRoundRobinCtl(svc.Cluster)
 		svc.Unlock()
 
-		go func() {
-			zbcommon.ZBL.Debug().Msg("starting topology ticker")
-			for {
-				select {
-				case <-time.After(zbcommon.TopologyRefreshInterval * time.Second * 30):
-					svc.Lock()
-					lastUpdate := svc.Cluster.UpdatedAt
-					svc.Unlock()
-
-					if time.Since(lastUpdate) > zbcommon.TopologyRefreshInterval*time.Second {
-						zbcommon.ZBL.Debug().Msg("topology ticker :: refreshing topology")
-						_, err := svc.RefreshTopology()
-						if err != nil {
-							// TODO: do something with error here
-						}
-					}
-
-				}
-			}
-		}()
+		//go func() {
+		//	zbcommon.ZBL.Debug().Msg("starting topology ticker")
+		//	for {
+		//		select {
+		//		case <-time.After(zbcommon.TopologyRefreshInterval * time.Second * 30):
+		//			svc.Lock()
+		//			lastUpdate := svc.Cluster.UpdatedAt
+		//			svc.Unlock()
+		//
+		//			if time.Since(lastUpdate) > zbcommon.TopologyRefreshInterval*time.Second {
+		//				zbcommon.ZBL.Debug().Msg("topology ticker :: refreshing topology")
+		//				_, err := svc.RefreshTopology()
+		//				if err != nil {
+		//					// TODO: do something with error here
+		//				}
+		//			}
+		//
+		//		}
+		//	}
+		//}()
 	} else {
+		svc.Lock()
 		svc.RoundRobin.UpdateClusterTopology(topology)
+		svc.Unlock()
 	}
 	zbcommon.ZBL.Debug().Msg("topology refreshed")
 	return svc.Cluster, nil

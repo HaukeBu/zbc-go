@@ -1,4 +1,4 @@
-VERSION=0.2.0
+VERSION=0.8.0
 BINARY_NAME=zbctl
 ZBC_PATH=$(GOPATH)/src/github.com/zeebe-io/zbc-go
 PREFIX=/usr/local
@@ -60,16 +60,16 @@ test-setup:
 
 test:
 	make test-setup
-	#make test-socket 
-	#make test-topology
-	#make test-exchange
-	#make test-tasksub
+	make test-socket 
+	make test-topology
+	make test-exchange
+	make test-tasksub
 	make test-topicsub
 	
-	#make test-protocol
-	#make test-sbe
-	#make test-msgpack
-	#make test-hexdump
+	make test-protocol
+	make test-sbe
+	make test-msgpack
+	make test-hexdump
 
 
 

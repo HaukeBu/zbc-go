@@ -14,44 +14,64 @@ import (
 )
 
 func TestTaskSubscriptionFailTask(t *testing.T) {
-	t.Log("creating new client")
+	t.Log("Creating client")
 	zbClient, err := zbc.NewClient(BrokerAddr)
 	Assert(t, nil, err, true)
 	Assert(t, nil, zbClient, false)
+	t.Log("Client created")
 
-	workflow, err := zbClient.CreateWorkflowFromFile(TopicName, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
+	t.Log("Creating topic")
+	hash := RandStringBytes(25)
+	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
+	Assert(t, nil, err, true)
+	Assert(t, nil, topic, false)
+	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+
+	t.Log("Creating workflow")
+	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
 	Assert(t, nil, err, true)
 	Assert(t, nil, workflow, false)
 	Assert(t, nil, workflow.State, false)
 	Assert(t, zbcommon.DeploymentCreated, workflow.State, true)
+	t.Log("Workflow created")
 
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
 
-	instance := zbc.NewWorkflowInstance("demoProcess", -1, payload)
-	t.Log("Creating 1 workflow instances")
-	createdInstance, err := zbClient.CreateWorkflowInstance(TopicName, instance)
+	t.Log("Creating 1 workflow instance")
+	createdInstance, err := zbClient.CreateWorkflowInstance(hash, zbc.NewWorkflowInstance("demoProcess", -1, payload))
 	Assert(t, nil, err, true)
 	Assert(t, nil, createdInstance, false)
 	Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
+	t.Log("Instance created")
 
+	t.Log("Create task subscription")
 	var ops uint64
-	subscription, err := zbClient.TaskSubscription(TopicName, "task_subscription_test", "foo",
+	subStart := time.Now()
+	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
-			Assert(t, nil, event, false)
 			atomic.AddUint64(&ops, 1)
+			Assert(t, nil, event, false)
+			Assert(t, nil, client, false)
 
 			task, err := zbClient.FailTask(event)
 			Assert(t, nil, task, false)
 			Assert(t, nil, err, true)
 		})
+	Assert(t, nil, err, true)
+	Assert(t, nil, *subscription, false)
+	t.Logf("Subscription creation took %v", time.Since(subStart))
 
+	t.Log("Starting to consume subscription")
+	go subscription.Start()
+
+	t.Log("Starting to monitor subscription")
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed tasks ", op)
 
 		if op >= 1 {
-			errs := zbClient.CloseTaskSubscription(subscription)
+			errs := subscription.Close()
 			Assert(t, 0, len(errs), true)
 			break
 		}

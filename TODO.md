@@ -11,7 +11,7 @@
 
 [x] Refactor zbtopology
 
-[x] Refactory zbtransport
+[x] Refactor zbtransport
 
 [x] Refactor zbsubscribe
 

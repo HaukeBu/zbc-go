@@ -45,13 +45,16 @@ func (tm *TransportSvc) transportWorker() {
 				continue
 			}
 
-			MessageRetry(func() (*zbdispatch.Message, error) {
+			_, err = MessageRetry(func() (*zbdispatch.Message, error) {
 				sock.AddTransaction(request)
 				if err := sock.Send(request); err != nil {
 					return nil, err
 				}
 				return nil, nil
 			})
+			if err != nil {
+				request.ErrorCh <- err
+			}
 
 		}
 	}
