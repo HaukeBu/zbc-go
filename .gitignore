@@ -9,3 +9,4 @@ cpu.prof
 mem.prof
 *.test
 trace.out
+.coverage

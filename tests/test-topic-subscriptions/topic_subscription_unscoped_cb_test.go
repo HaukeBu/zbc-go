@@ -8,8 +8,9 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 
-	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"time"
+
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
 var topicTester *testing.T
@@ -59,13 +60,13 @@ func TestTopicSubscriptionUnscopedCallback(t *testing.T) {
 	}
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
-
-	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, TopicHandler)
+	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, false, TopicHandler)
 	Assert(t, nil, subscription, false)
 	Assert(t, nil, err, true)
 
-	err = subscription.ProcessNext(25)
+	done, err := subscription.ProcessNext(25)
 	Assert(t, nil, err, true)
+	Assert(t, false, done, true)
 
 	errs := subscription.Close()
 	Assert(t, 0, len(errs), true)

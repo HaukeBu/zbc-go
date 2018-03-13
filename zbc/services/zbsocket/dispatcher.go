@@ -1,30 +1,30 @@
 package zbsocket
 
 import (
+	"time"
+
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsbe"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 
-	"github.com/zeebe-io/zbc-go/zbc/common"
-	"github.com/zeebe-io/zbc-go/zbc/models/zbdispatch"
 	"strconv"
 	"sync"
+
+	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbdispatch"
 )
 
 type safeTaskSubscriptionDispatcher struct {
 	subscriptions *sync.Map
 }
 
-
 func (sd *safeTaskSubscriptionDispatcher) AddTaskSubscription(key uint64, ch chan *zbsubscriptions.SubscriptionEvent) {
 	sd.subscriptions.Store(key, ch)
 }
 
-
 func (sd *safeTaskSubscriptionDispatcher) RemoveTaskSubscription(key uint64) {
 	sd.subscriptions.Delete(key)
 }
-
 
 func (sd *safeTaskSubscriptionDispatcher) GetTaskChannel(key uint64) chan *zbsubscriptions.SubscriptionEvent {
 	if ch, ok := sd.subscriptions.Load(key); ok {
@@ -33,37 +33,38 @@ func (sd *safeTaskSubscriptionDispatcher) GetTaskChannel(key uint64) chan *zbsub
 	return nil
 }
 
-
 func (sd *safeTaskSubscriptionDispatcher) DispatchTaskEvent(key uint64, message *zbsbe.SubscribedEvent, task *zbmsgpack.Task) error {
-	if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
-		c := ch.(chan *zbsubscriptions.SubscriptionEvent)
-		task := &zbsubscriptions.SubscriptionEvent{
-			Task: task, Event: message,
+	for i := 0; i < 3; i++ {
+		if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
+			c := ch.(chan *zbsubscriptions.SubscriptionEvent)
+			task := &zbsubscriptions.SubscriptionEvent{
+				Task: task, Event: message,
+			}
+			zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatching task event")
+			c <- task
+			zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatched")
+			return nil
 		}
-		zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatching task event")
-		c <- task
-		zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatched")
-		return nil
+
+		sleep := time.Duration(100 * i)
+		time.Sleep(time.Duration(time.Millisecond * sleep))
 	}
 
 	return zbcommon.ErrWrongSubscriptionKey
 }
-
-
 
 type safeTopicSubscriptionDispatcher struct {
 	subscriptions *sync.Map
 }
 
 func (sd *safeTopicSubscriptionDispatcher) AddTopicSubscription(key uint64, ch chan *zbsubscriptions.SubscriptionEvent) {
+	zbcommon.ZBL.Debug().Msgf("Adding subscription %d to map", key)
 	sd.subscriptions.Store(key, ch)
 }
-
 
 func (sd *safeTopicSubscriptionDispatcher) RemoveTopicSubscription(key uint64) {
 	sd.subscriptions.Delete(key)
 }
-
 
 func (sd *safeTopicSubscriptionDispatcher) GetTopicChannel(key uint64) chan *zbsubscriptions.SubscriptionEvent {
 	if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
@@ -72,27 +73,29 @@ func (sd *safeTopicSubscriptionDispatcher) GetTopicChannel(key uint64) chan *zbs
 	return nil
 }
 
-
 func (sd *safeTopicSubscriptionDispatcher) DispatchTopicEvent(key uint64, message *zbsbe.SubscribedEvent) error {
-	if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
-		event := &zbsubscriptions.SubscriptionEvent{
-			Event: message,
+	for i := 0; i < 3; i++ {
+		if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
+			event := &zbsubscriptions.SubscriptionEvent{
+				Event: message,
+			}
+			zbcommon.ZBL.Debug().Msgf("dispatch topic event")
+			ch.(chan *zbsubscriptions.SubscriptionEvent) <- event
+			zbcommon.ZBL.Debug().Msgf("topic event dispatched")
+			return nil
 		}
-		zbcommon.ZBL.Debug().Msgf("dispatch topic event")
-		ch.(chan *zbsubscriptions.SubscriptionEvent) <- event
-		zbcommon.ZBL.Debug().Msgf("topic event dispatched")
-		return nil
-	}
-	return zbcommon.ErrWrongSubscriptionKey
 
+		sleep := time.Duration(100 * i)
+		time.Sleep(time.Duration(time.Millisecond * sleep))
+	}
+
+	return zbcommon.ErrWrongSubscriptionKey
 }
 
 type subscriptionsDispatcher struct {
 	*safeTaskSubscriptionDispatcher
 	*safeTopicSubscriptionDispatcher
 }
-
-
 
 func newSubscriptionsDispatcher() *subscriptionsDispatcher {
 	return &subscriptionsDispatcher{

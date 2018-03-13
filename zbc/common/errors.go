@@ -44,7 +44,7 @@ var (
 // Socket dispatcher errors
 var (
 	ErrWrongTransactionIndex = errors.New("wrong transaction index, possible problem with RequestID")
-	ErrWrongSubscriptionKey  = errors.New("cannot dispatch task subscriptions event, possible problem with SubscriberKey")
+	ErrWrongSubscriptionKey  = errors.New("cannot dispatch subscriptions event, possible problem with SubscriberKey")
 )
 
 // Round Robin Controller
@@ -54,5 +54,5 @@ var (
 
 var (
 	ErrSubscriptionPipelineFailed = errors.New("opening on all partitions failed")
-	ErrSubscriptionClosed = errors.New("error processing event in handler, subscription closed")
+	ErrSubscriptionClosed         = errors.New("error processing event in handler, subscription closed")
 )

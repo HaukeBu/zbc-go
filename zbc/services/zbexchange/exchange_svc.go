@@ -11,8 +11,8 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/services/zbtopology"
 
 	"github.com/zeebe-io/zbc-go/zbc/common"
-	"github.com/zeebe-io/zbc-go/zbc/services/zbsocket"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsbe"
+	"github.com/zeebe-io/zbc-go/zbc/services/zbsocket"
 )
 
 type ExchangeSvc struct {
@@ -109,11 +109,11 @@ func (rm *ExchangeSvc) FailTask(task *zbsubscriptions.SubscriptionEvent) (*zbmsg
 
 // OpenTaskPartition will open a test-task-subscriptions subscription on one partition.
 func (rm *ExchangeSvc) OpenTaskPartition(
-		ch chan *zbsubscriptions.SubscriptionEvent,
-		partitionID uint16,
-		lockOwner,
-		taskType string,
-		credits int32) *zbmsgpack.TaskSubscriptionInfo {
+	ch chan *zbsubscriptions.SubscriptionEvent,
+	partitionID uint16,
+	lockOwner,
+	taskType string,
+	credits int32) *zbmsgpack.TaskSubscriptionInfo {
 
 	message := rm.OpenTaskSubscriptionRequest(partitionID, lockOwner, taskType, credits)
 	request := zbsocket.NewRequestWrapper(message)
@@ -131,13 +131,14 @@ func (rm *ExchangeSvc) OpenTaskPartition(
 }
 
 func (rm *ExchangeSvc) OpenTopicPartition(
-		ch chan *zbsubscriptions.SubscriptionEvent,
-		partitionID uint16,
-		topic, subscriptionName string,
-		prefetchCapacity int32,
-		startPosition int64) *zbmsgpack.TopicSubscriptionInfo {
+	ch chan *zbsubscriptions.SubscriptionEvent,
+	partitionID uint16,
+	topic, subscriptionName string,
+	startPosition int64,
+	forceStart bool,
+	prefetchCapacity int32) *zbmsgpack.TopicSubscriptionInfo {
 
-	message := rm.OpenTopicSubscriptionRequest(partitionID, topic, subscriptionName, startPosition, prefetchCapacity)
+	message := rm.OpenTopicSubscriptionRequest(partitionID, topic, subscriptionName, startPosition, forceStart, prefetchCapacity)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {

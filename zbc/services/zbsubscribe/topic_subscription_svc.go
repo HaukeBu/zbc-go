@@ -1,17 +1,16 @@
 package zbsubscribe
 
-
 import (
-	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
-	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
+	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 )
 
 type TopicSubscriptionSvc struct {
 	zbexchange.LikeExchangeSvc
 }
 
-func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, prefetchCapacity int32, startPosition int64) (*TopicSubscription, error) {
+func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPosition int64, forceStart bool, prefetchCapacity int32) (*TopicSubscription, error) {
 	partitions, err := ts.TopicPartitionsAddrs(topic)
 	if err != nil {
 		return nil, err
@@ -26,7 +25,7 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, prefetchCap
 	zbcommon.ZBL.Debug().Msg("new topic subscription created")
 
 	for partitionID := range *partitions {
-		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, prefetchCapacity, startPosition)
+		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, startPosition, forceStart, prefetchCapacity)
 		if sub != nil {
 			closeRequest := &zbmsgpack.TopicSubscriptionCloseRequest{
 				TopicName:        topic,
@@ -48,9 +47,9 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, prefetchCap
 	return topicSubscription, nil
 }
 
-func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetchCapacity int32, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
+func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetchCapacity int32, startPosition int64, forceStart bool, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
 	zbcommon.ZBL.Debug().Msg("Opening topic subscription")
-	topicConsumer, err := ts.topicConsumer(topic, subName, prefetchCapacity, startPosition)
+	topicConsumer, err := ts.topicConsumer(topic, subName, startPosition, forceStart, prefetchCapacity)
 	zbcommon.ZBL.Debug().Msg("CreateTopic subscription opened.")
 
 	if err != nil {

@@ -9,9 +9,10 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 
-	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
-	"time"
 	"sync/atomic"
+	"time"
+
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
 func TestTopicSubscriptionCallback(t *testing.T) {
@@ -52,7 +53,7 @@ func TestTopicSubscriptionCallback(t *testing.T) {
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
 	var ops uint64
-	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0,0,
+	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, false,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
 			Assert(t, nil, event, false)
 			Assert(t, nil, client, false)
