@@ -14,7 +14,7 @@ func TestCreateTask(t *testing.T) {
 	Assert(t, nil, err, true)
 	Assert(t, nil, zbClient, false)
 
-	task := zbc.NewTask("testType", "test-owner")
+	task := zbc.NewTask("testType")
 	responseTask, err := zbClient.CreateTask(TopicName, task)
 	Assert(t, nil, err, true)
 	Assert(t, nil, responseTask, false)

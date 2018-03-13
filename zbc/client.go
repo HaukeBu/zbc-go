@@ -37,15 +37,14 @@ func NewClient(bootstrapAddr string) (*Client, error) {
 }
 
 // NewTask is constructor for Task object. Function signature denotes mandatory fields.
-func NewTask(typeName, lockOwner string) *zbmsgpack.Task {
+func NewTask(typeName string) *zbmsgpack.Task {
 	return &zbmsgpack.Task{
 		State:        zbcommon.TaskCreate,
 		Headers:      make(map[string]interface{}),
 		CustomHeader: make(map[string]interface{}),
 
-		Type:      typeName,
-		LockOwner: lockOwner,
-		Retries:   3,
+		Type:    typeName,
+		Retries: 3,
 	}
 }
 
