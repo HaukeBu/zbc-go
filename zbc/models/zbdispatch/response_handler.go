@@ -6,6 +6,7 @@ import (
 	"github.com/vmihailenco/msgpack"
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbsbe"
 )
 
 type ResponseHandler struct{}
@@ -98,6 +99,8 @@ func (rf *ResponseHandler) UnmarshalWorkflowInstance(m *Message) *zbmsgpack.Work
 		return nil
 	}
 	if len(d.BPMNProcessID) > 0 {
+		sbeMessage := m.SbeMessage.(*zbsbe.ExecuteCommandResponse)
+		d.WorkflowInstanceKey = sbeMessage.Key
 		return &d
 	}
 	return nil
