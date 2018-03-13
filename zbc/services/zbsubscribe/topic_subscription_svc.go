@@ -11,7 +11,7 @@ type TopicSubscriptionSvc struct {
 	zbexchange.LikeExchangeSvc
 }
 
-func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPosition int64) (*TopicSubscription, error) {
+func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, prefetchCapacity int32, startPosition int64) (*TopicSubscription, error) {
 	partitions, err := ts.TopicPartitionsAddrs(topic)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 	zbcommon.ZBL.Debug().Msg("new topic subscription created")
 
 	for partitionID := range *partitions {
-		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, startPosition)
+		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, prefetchCapacity, startPosition)
 		if sub != nil {
 			closeRequest := &zbmsgpack.TopicSubscriptionCloseRequest{
 				TopicName:        topic,
@@ -48,9 +48,9 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 	return topicSubscription, nil
 }
 
-func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
+func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetchCapacity int32, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
 	zbcommon.ZBL.Debug().Msg("Opening topic subscription")
-	topicConsumer, err := ts.topicConsumer(topic, subName, startPosition)
+	topicConsumer, err := ts.topicConsumer(topic, subName, prefetchCapacity, startPosition)
 	zbcommon.ZBL.Debug().Msg("CreateTopic subscription opened.")
 
 	if err != nil {

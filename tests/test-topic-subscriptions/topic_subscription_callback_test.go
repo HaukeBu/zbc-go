@@ -52,7 +52,7 @@ func TestTopicSubscriptionCallback(t *testing.T) {
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
 	var ops uint64
-	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0,
+	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0,0,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
 			Assert(t, nil, event, false)
 			Assert(t, nil, client, false)

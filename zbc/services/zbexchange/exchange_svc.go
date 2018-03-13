@@ -134,9 +134,10 @@ func (rm *ExchangeSvc) OpenTopicPartition(
 		ch chan *zbsubscriptions.SubscriptionEvent,
 		partitionID uint16,
 		topic, subscriptionName string,
+		prefetchCapacity int32,
 		startPosition int64) *zbmsgpack.TopicSubscriptionInfo {
 
-	message := rm.OpenTopicSubscriptionRequest(partitionID, topic, subscriptionName, startPosition)
+	message := rm.OpenTopicSubscriptionRequest(partitionID, topic, subscriptionName, startPosition, prefetchCapacity)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {

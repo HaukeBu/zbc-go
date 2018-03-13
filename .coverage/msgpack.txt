@@ -1,4 +1,13 @@
 mode: atomic
+command-line-arguments/workflow.go:23.36,25.16 2 0
+command-line-arguments/workflow.go:28.2,28.38 1 0
+command-line-arguments/workflow.go:25.16,27.3 1 0
+command-line-arguments/instance.go:16.44,18.16 2 0
+command-line-arguments/instance.go:21.2,21.38 1 0
+command-line-arguments/instance.go:18.16,20.3 1 0
+command-line-arguments/task.go:21.32,23.16 2 0
+command-line-arguments/task.go:26.2,26.38 1 0
+command-line-arguments/task.go:23.16,25.3 1 0
 command-line-arguments/tasksub.go:17.48,19.16 2 0
 command-line-arguments/tasksub.go:22.2,22.38 1 0
 command-line-arguments/tasksub.go:19.16,21.3 1 0
@@ -37,12 +46,3 @@ command-line-arguments/topology.go:92.25,94.3 1 0
 command-line-arguments/topology.go:101.43,103.16 2 0
 command-line-arguments/topology.go:106.2,106.38 1 0
 command-line-arguments/topology.go:103.16,105.3 1 0
-command-line-arguments/workflow.go:23.36,25.16 2 0
-command-line-arguments/workflow.go:28.2,28.38 1 0
-command-line-arguments/workflow.go:25.16,27.3 1 0
-command-line-arguments/instance.go:16.44,18.16 2 0
-command-line-arguments/instance.go:21.2,21.38 1 0
-command-line-arguments/instance.go:18.16,20.3 1 0
-command-line-arguments/task.go:21.32,23.16 2 0
-command-line-arguments/task.go:26.2,26.38 1 0
-command-line-arguments/task.go:23.16,25.3 1 0

@@ -1,7 +1,4 @@
 mode: atomic
-command-line-arguments/request_response_header.go:14.64,16.2 1 1
-command-line-arguments/request_response_header.go:19.99,21.2 1 1
-command-line-arguments/request_response_header.go:24.56,26.2 1 1
 command-line-arguments/single_message_header.go:7.52,9.2 1 1
 command-line-arguments/transport_header.go:21.58,23.2 1 2
 command-line-arguments/transport_header.go:26.93,28.2 1 2
@@ -9,3 +6,6 @@ command-line-arguments/transport_header.go:31.54,35.2 1 1
 command-line-arguments/frame_header.go:38.54,40.2 1 1
 command-line-arguments/frame_header.go:43.89,45.2 1 1
 command-line-arguments/frame_header.go:48.109,56.2 1 2
+command-line-arguments/request_response_header.go:14.64,16.2 1 1
+command-line-arguments/request_response_header.go:19.99,21.2 1 1
+command-line-arguments/request_response_header.go:24.56,26.2 1 1

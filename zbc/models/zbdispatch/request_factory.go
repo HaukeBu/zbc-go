@@ -257,11 +257,11 @@ func (rf *RequestFactory) CloseTopicSubscriptionRequest(ts *zbmsgpack.TopicSubsc
 	return &msg
 }
 
-func (rf *RequestFactory) OpenTopicSubscriptionRequest(partitionID uint16, topic, subName string, startPosition int64) *Message {
+func (rf *RequestFactory) OpenTopicSubscriptionRequest(partitionID uint16, topic, subName string, startPosition int64, prefetchCapacity int32) *Message {
 	ts := &zbmsgpack.TopicSubscriptionInfo{
 		StartPosition:    startPosition,
 		Name:             subName,
-		PrefetchCapacity: 0,
+		PrefetchCapacity: prefetchCapacity,
 		ForceStart:       true,
 		State:            zbcommon.TopicSubscriptionSubscribeState,
 	}

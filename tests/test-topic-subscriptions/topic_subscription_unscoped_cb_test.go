@@ -60,7 +60,7 @@ func TestTopicSubscriptionUnscopedCallback(t *testing.T) {
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
 
-	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, TopicHandler)
+	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, TopicHandler)
 	Assert(t, nil, subscription, false)
 	Assert(t, nil, err, true)
 

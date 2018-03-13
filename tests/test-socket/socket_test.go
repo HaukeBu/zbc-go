@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
+	"os"
 )
 
 func TestNewSocket(t *testing.T) {
@@ -24,7 +25,13 @@ func TestNewSocket(t *testing.T) {
 	response := <-request.ResponseCh
 	topology := responseHandler.UnmarshalTopology(response)
 
-	Assert(t, 1, len(topology.Brokers), true)
+	brokerAddr := os.Getenv("ZB_BROKER_ADDR")
+	if len(brokerAddr) == 0 {
+		Assert(t, 1, len(topology.Brokers), true)
+	} else {
+		Assert(t, 3, len(topology.Brokers), true)
+	}
+
 	Assert(t, nil, response, false)
 	Assert(t, nil, topology, false)
 }

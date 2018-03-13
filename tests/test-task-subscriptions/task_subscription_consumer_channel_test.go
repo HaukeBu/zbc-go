@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func TestTaskSubscriptionSetupTest(t *testing.T) {
+func TestTaskSubscriptionConsumerChannelTest(t *testing.T) {
 	t.Log("Creating client")
 	zbClient, err := zbc.NewClient(BrokerAddr)
 	Assert(t, nil, err, true)

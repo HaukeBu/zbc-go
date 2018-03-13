@@ -18,7 +18,7 @@ type LikeTaskSubscriptionSvc interface {
 
 // LikeTopicSubscriptionSvc defines behaviour of TopicSubscriptionSvc.
 type LikeTopicSubscriptionSvc interface {
-	TopicSubscription(topic, subName string, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error)
+	TopicSubscription(topic, subName string, prefetchCapacity int32, startPosition int64, cb TopicSubscriptionCallback) (*TopicSubscription, error)
 	CloseTopicSubscription(sub *TopicSubscription) []error
 
 	// TODO: Move TopicSubscriptionAckRequest behind this interface
