@@ -66,7 +66,6 @@ func TestTaskSubscriptionUnscopedCallback(t *testing.T) {
 	t.Log("Starting to consume subscription")
 	go subscription.Start()
 
-
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed tasks ", op)

@@ -1,6 +1,5 @@
 package zbsubscribe
 
-
 import (
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
@@ -43,7 +42,7 @@ func (tc *TopicSubscriptionCtrl) GetSubscriptionCloseRequest(partition uint16) (
 
 func NewTopicSubscriptionAckCtrl() *TopicSubscriptionCtrl {
 	return &TopicSubscriptionCtrl{
-		CloseRequests: make(map[uint16]*zbmsgpack.TopicSubscriptionCloseRequest),
+		CloseRequests:     make(map[uint16]*zbmsgpack.TopicSubscriptionCloseRequest),
 		SubscriptionsInfo: make(map[uint16]*zbmsgpack.TopicSubscriptionInfo),
 	}
 }

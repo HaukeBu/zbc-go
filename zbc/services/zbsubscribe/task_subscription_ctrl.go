@@ -29,7 +29,7 @@ func NewTaskSubscriptionCallbackCtrl(cb TaskSubscriptionCallback) *TaskSubscript
 
 // TaskSubscriptionCtrl is controller structure for credits management on test-task-subscriptions subscription.
 type TaskSubscriptionCtrl struct {
-	Subscriptions        map[uint16]*zbmsgpack.TaskSubscriptionInfo
+	Subscriptions map[uint16]*zbmsgpack.TaskSubscriptionInfo
 }
 
 // AddSubscription will add test-task-subscriptions subscription information to its belonging partitionID.
@@ -46,6 +46,6 @@ func (ts *TaskSubscriptionCtrl) GetSubscription(partition uint16) (*zbmsgpack.Ta
 // NewTaskSubscriptionCreditsCtrl  is a constructor for TaskSubscriptionCtrl.
 func NewTaskSubscriptionCreditsCtrl() *TaskSubscriptionCtrl {
 	return &TaskSubscriptionCtrl{
-		Subscriptions:        make(map[uint16]*zbmsgpack.TaskSubscriptionInfo),
+		Subscriptions: make(map[uint16]*zbmsgpack.TaskSubscriptionInfo),
 	}
 }

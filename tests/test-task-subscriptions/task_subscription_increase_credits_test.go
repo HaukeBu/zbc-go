@@ -1,16 +1,16 @@
 package test_task_subscriptions
 
 import (
-	"time"
 	"testing"
+	"time"
 
 	"github.com/zeebe-io/zbc-go/zbc"
 
 	"github.com/zeebe-io/zbc-go/zbc/common"
 
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
-	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
+	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 	"sync/atomic"
 )
 
@@ -50,7 +50,6 @@ func TestTaskSubscriptionIncreaseCredits(t *testing.T) {
 		Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
 	}
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
-
 
 	// MARK: we make payload sufficiently large (wiCount) and credits small.
 	// If everything passes test should finish in time.

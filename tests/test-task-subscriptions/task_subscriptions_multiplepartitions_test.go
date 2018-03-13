@@ -36,7 +36,7 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 	Assert(t, nil, workflow.State, false)
 	Assert(t, zbcommon.DeploymentCreated, workflow.State, true)
 	t.Log("Workflow created")
-	
+
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
 
@@ -67,7 +67,6 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 
 	t.Log("Starting to consume subscription")
 	go subscription.Start()
-
 
 	for {
 		op := atomic.LoadUint64(&ops)

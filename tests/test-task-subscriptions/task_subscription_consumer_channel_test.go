@@ -34,7 +34,6 @@ func TestTaskSubscriptionConsumerChannelTest(t *testing.T) {
 	Assert(t, zbcommon.DeploymentCreated, workflow.State, true)
 	t.Log("Workflow created")
 
-
 	t.Log("Create task subscription")
 	var ops uint64
 	subStart := time.Now()

@@ -217,7 +217,6 @@ func (svc *TopologySvc) getDestinationAddr(msg *zbdispatch.Message) (string, err
 		return "", zbcommon.BrokerNotFound
 	}
 
-
 	if msg.IsTopologyMessage() && svc.Cluster == nil {
 		return svc.bootstrapAddr, nil
 	}
@@ -237,7 +236,7 @@ func NewTopologySvc(bootstrapAddr string) *TopologySvc {
 	// TODO: validate bootstrapAddr as valid URI/IP
 
 	return &TopologySvc{
-		RWMutex: &sync.RWMutex{},
+		RWMutex:          &sync.RWMutex{},
 		RequestFactory:   zbdispatch.NewRequestFactory(),
 		ResponseHandler:  zbdispatch.NewResponseHandler(),
 		transportSvc:     zbtransport.NewTransportSvc(),

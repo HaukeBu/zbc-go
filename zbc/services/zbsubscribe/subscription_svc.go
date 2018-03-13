@@ -13,8 +13,8 @@ type SubscriptionSvc struct {
 
 func NewSubscriptionSvc(exchange zbexchange.LikeExchangeSvc) *SubscriptionSvc {
 	return &SubscriptionSvc{
-		LikeExchangeSvc:exchange,
-		LikeTaskSubscriptionSvc: NewTaskSubscriptionSvc(exchange),
+		LikeExchangeSvc:          exchange,
+		LikeTaskSubscriptionSvc:  NewTaskSubscriptionSvc(exchange),
 		LikeTopicSubscriptionSvc: NewTopicSubscribtionSvc(exchange),
 	}
 }

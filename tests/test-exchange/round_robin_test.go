@@ -15,8 +15,8 @@ import (
 
 func TestRoundRobin(t *testing.T) {
 	client := &zbexchange.ExchangeSvc{
-		LikeTopologySvc:zbtopology.NewTopologySvc(BrokerAddr),
-		RequestFactory: zbdispatch.NewRequestFactory(),
+		LikeTopologySvc: zbtopology.NewTopologySvc(BrokerAddr),
+		RequestFactory:  zbdispatch.NewRequestFactory(),
 		ResponseHandler: zbdispatch.NewResponseHandler(),
 	}
 

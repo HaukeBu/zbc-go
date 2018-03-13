@@ -94,6 +94,5 @@ const SubscriptionPipelineQueueSize = ^uint16(0)
 
 const StateLeader = "LEADER"
 
-
 const TaskSubscriptionRefreshCreditsThreshold float32 = 0.3
 const TopicSubscriptionAckThreshold float32 = 0.7

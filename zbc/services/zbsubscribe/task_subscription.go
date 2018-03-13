@@ -1,8 +1,8 @@
 package zbsubscribe
 
 import (
-	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 )
 
 // TaskSubscription is object for handling overall test-task-subscriptions subscription.
@@ -58,7 +58,7 @@ func (ts *TaskSubscription) ProcessNext(n uint64) {
 		if n <= processed {
 			break
 		}
-		if len(ts.OutCh) < int(threshold)  { // or n > processed
+		if len(ts.OutCh) < int(threshold) { // or n > processed
 			zbcommon.ZBL.Info().Msg("increasing credits on all partitions")
 			ts.increaseCredits()
 		}

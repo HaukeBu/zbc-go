@@ -10,6 +10,7 @@ import (
 
 // TopicSubscriptionCloseRequest is responsible for handling of topic subscription mechanics.
 type TopicSubscription struct {
+	*sync.Mutex
 	*zbsubscriptions.SubscriptionPipelineCtrl
 
 	*TopicSubscriptionCtrl
@@ -17,7 +18,6 @@ type TopicSubscription struct {
 
 	svc                *TopicSubscriptionSvc
 	lastSucessfulEvent *zbsubscriptions.SubscriptionEvent
-	*sync.Mutex
 }
 
 func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.SubscriptionEvent, uint64, error) {
@@ -144,9 +144,9 @@ func (ts *TopicSubscription) WithCallback(cb TopicSubscriptionCallback) *TopicSu
 // NewTopicSubscription is a constructor for TopicSubscriptionCloseRequest object.
 func NewTopicSubscription() *TopicSubscription {
 	return &TopicSubscription{
+		Mutex: &sync.Mutex{},
 		SubscriptionPipelineCtrl:      zbsubscriptions.NewSubscriptionPipelineCtrl(),
 		TopicSubscriptionCallbackCtrl: nil,
 		TopicSubscriptionCtrl:         NewTopicSubscriptionAckCtrl(),
-		Mutex: &sync.Mutex{},
 	}
 }

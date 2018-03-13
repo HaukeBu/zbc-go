@@ -1,8 +1,8 @@
 package zbsubscribe
 
 import (
-	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 )
 
 // TaskSubscriptionSvc is responsible for test-task-subscriptions subscription management.
