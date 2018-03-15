@@ -56,3 +56,7 @@ var (
 	ErrSubscriptionPipelineFailed = errors.New("opening on all partitions failed")
 	ErrSubscriptionClosed         = errors.New("error processing event in handler, subscription closed")
 )
+
+var (
+	ErrEventNotTask = errors.New("provided events is not a task")
+)

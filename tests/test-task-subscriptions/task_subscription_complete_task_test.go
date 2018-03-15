@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// type UserType struct {
+// type SenderType struct {
 // 	ID int
 // 	Name string
 // }
@@ -59,7 +59,7 @@ func TestTaskSubscriptionCompleteTask(t *testing.T) {
 			Assert(t, nil, client, false)
 
 			// TODO: Implement unmarshaling of custom user struct and updating event with the struct change
-			// ut := &UserType{}
+			// ut := &SenderType{}
 			// err := zbClient.UnmarshalCustomStruct(event, ut)
 
 			task, err := zbClient.CompleteTask(event)

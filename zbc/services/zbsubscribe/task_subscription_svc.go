@@ -17,12 +17,12 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 	}
 
 	if partitions == nil || len(*partitions) == 0 {
-		zbcommon.ZBL.Error().Msgf("topic %s topology not found", topic)
+		zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msgf("topic %s topology not found", topic)
 		return nil, zbcommon.BrokerNotFound
 	}
 
 	taskSubscription := NewTaskSubscription()
-	zbcommon.ZBL.Debug().Msg("new task subscription created")
+	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("new task subscription created")
 
 	for partitionID := range *partitions {
 		sub := ts.OpenTaskPartition(taskSubscription.OutCh, partitionID, lockOwner, taskType, credits)
@@ -31,7 +31,7 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 			taskSubscription.AddSubscription(partitionID, sub)
 			taskSubscription.AddPartition(partitionID)
 		} else {
-			zbcommon.ZBL.Error().Msg("opening subscription on all partitions failed")
+			zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("opening subscription on all partitions failed")
 			taskSubscription.Close()
 			return nil, zbcommon.ErrSubscriptionPipelineFailed
 		}
@@ -57,13 +57,12 @@ func (ts *TaskSubscriptionSvc) TaskSubscription(topic, lockOwner, taskType strin
 			count++
 			continue
 		} else {
-			zbcommon.ZBL.Error().Msg("Failed to create TaskSubscription")
+			zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "TaskSubscription").Msg("Failed to create TaskSubscription")
 			return nil, err
 		}
 	}
 
 	zbcommon.ZBL.Debug().Msg("TaskSubscription created")
-
 	taskSubscription = taskSubscription.WithCallback(cb).WithTaskSubscriptionSvc(ts)
 	if taskSubscription == nil {
 		return nil, zbcommon.BrokerNotFound

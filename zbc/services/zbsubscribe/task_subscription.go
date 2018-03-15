@@ -34,6 +34,7 @@ func (ts *TaskSubscription) increaseCredits() {
 }
 
 func (ts *TaskSubscription) processNext(n uint64) {
+	zbcommon.ZBL.Info().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("About to process %d events", n)
 	var i uint64 = 0
 	for ; i < n; i++ {
 		select {

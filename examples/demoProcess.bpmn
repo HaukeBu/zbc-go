@@ -22,16 +22,16 @@
       <bpmn:incoming>SequenceFlow_1sz6737</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_06ytcxw</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="taskB" name="taks B">
+    <bpmn:serviceTask id="taskB" name="task B">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="bar" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_06ytcxw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oh45y7</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="taskC" name="taks C">
+    <bpmn:serviceTask id="taskC" name="task C">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="foo" />
+        <zeebe:taskDefinition type="foobar" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1oh45y7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_148rk2p</bpmn:outgoing>

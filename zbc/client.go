@@ -1,12 +1,12 @@
 package zbc
 
 import (
-	"github.com/vmihailenco/msgpack"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/vmihailenco/msgpack"
 )
 
 // Client for Zeebe broker with support for clustered deployment.
@@ -29,7 +29,9 @@ func NewClient(bootstrapAddr string) (*Client, error) {
 		return nil, zbcommon.ErrNoBrokersFound
 	}
 
-	c := &Client{zbsubscribe.NewSubscriptionSvc(exchangeSvc)}
+	c := &Client{
+		ZeebeAPI: zbsubscribe.NewSubscriptionSvc(exchangeSvc),
+	}
 
 	// MARK: Initialize subscriptions client for callbacks
 	zbsubscribe.SetClientInstance(c)
@@ -54,6 +56,7 @@ func NewWorkflowInstance(bpmnProcessID string, version int, payload interface{})
 	if err != nil {
 		return nil
 	}
+
 	return &zbmsgpack.WorkflowInstance{
 		State:         zbcommon.CreateWorkflowInstance,
 		BPMNProcessID: bpmnProcessID,

@@ -64,15 +64,16 @@ func (svc *TopologySvc) NextPartitionID(topic string) (*uint16, error) {
 	}
 	partitionID, err := svc.RoundRobin.nextPartitionID(topic)
 	if err != nil {
-		zbcommon.ZBL.Error().Str("component", "TopologySvc::NextPartitionID").Msgf("nextPartitionID failed :: %+v", err)
-		zbcommon.ZBL.Info().Str("component", "TopologySvc::NextPartitionID").Msg(" NextPartitionID :: refreshing topology")
+		zbcommon.ZBL.Error().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msgf("nextPartitionID failed for topic %s :: %+v", topic, err)
+		zbcommon.ZBL.Info().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msg("Refreshing topology")
 
 		_, err := svc.RefreshTopology()
 		newPartitionID, err := svc.RoundRobin.nextPartitionID(topic)
 		if err != nil {
-			zbcommon.ZBL.Error().Str("component", "TopologySvc::NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", err)
+			zbcommon.ZBL.Error().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", err)
 			return nil, err
 		}
+		zbcommon.ZBL.Debug().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msg("Success.")
 		return newPartitionID, nil
 	}
 
@@ -130,7 +131,7 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 }
 
 func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
-	zbcommon.ZBL.Debug().Msg("refreshing topology")
+	zbcommon.ZBL.Debug().Str("component", "TopologySvc").Str("method", "RefreshTopology").Msg("About to refresh topology.")
 
 	topology, err := svc.getTopology()
 	if err != nil {
@@ -138,7 +139,7 @@ func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
 	}
 
 	if svc.RoundRobin == nil {
-		zbcommon.ZBL.Debug().Msg("round robing controller is nil ... initializing")
+		zbcommon.ZBL.Debug().Msg("round robin controller is nil ... initializing")
 		svc.Lock()
 		svc.RoundRobin = NewRoundRobinCtl(svc.Cluster)
 		svc.Unlock()

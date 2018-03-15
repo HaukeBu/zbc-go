@@ -69,7 +69,7 @@ func TestTaskSubscriptionUnscopedCallback(t *testing.T) {
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed tasks ", op)
-		if op >= 1 {
+		if op >= 10 {
 			errs := subscription.Close()
 			Assert(t, 0, len(errs), true)
 			break

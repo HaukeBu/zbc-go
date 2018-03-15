@@ -16,13 +16,3 @@ func NewProtocolSerializer() *ProtocolSerializer {
 	return &ProtocolSerializer{}
 }
 
-// TODO: Implement payload marshaller for updating payload
-type PayloadMarshaller struct{}
-
-func (pm *PayloadMarshaller) Marshal() {
-
-}
-
-func (pm *PayloadMarshaller) Unmarshal() {
-
-}

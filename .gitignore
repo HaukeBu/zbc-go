@@ -10,3 +10,4 @@ mem.prof
 *.test
 trace.out
 .coverage
+.DS_Store

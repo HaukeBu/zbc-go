@@ -70,7 +70,7 @@ func (rm *ExchangeSvc) CreateWorkflowFromFile(topic, resourceType, path string) 
 }
 
 func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.WorkflowInstance) (*zbmsgpack.WorkflowInstance, error) {
-	zbcommon.ZBL.Debug().Msg("creating workflow instance")
+	zbcommon.ZBL.Debug().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msg("creating workflow instance")
 	pid, err := rm.NextPartitionID(topic)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.Workf
 	if err != nil {
 		return nil, err
 	}
-	zbcommon.ZBL.Debug().Msg("workflow instance created")
+	zbcommon.ZBL.Debug().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msg("workflow instance created")
 	return rm.UnmarshalWorkflowInstance(resp), nil
 }
 

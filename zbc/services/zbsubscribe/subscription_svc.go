@@ -6,7 +6,6 @@ import (
 
 type SubscriptionSvc struct {
 	zbexchange.LikeExchangeSvc
-
 	LikeTaskSubscriptionSvc
 	LikeTopicSubscriptionSvc
 }

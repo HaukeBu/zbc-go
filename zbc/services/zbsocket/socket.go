@@ -78,12 +78,13 @@ func (s *socket) receiver() {
 				zbcommon.ZBL.Debug().Str("component", "socket").Msgf("subscriptions event from partitionID %d, subscriptions type %d", partitionID, event.SubscriptionType)
 				switch event.SubscriptionType {
 				case zbsbe.SubscriptionType.TASK_SUBSCRIPTION:
-					zbcommon.ZBL.Debug().Str("component", "socket").Msg("task received -> dispatching task")
 					task := responseHandler.UnmarshalTask(message)
 					if task == nil {
 						zbcommon.ZBL.Error().Str("component", "socket").Msg("task is nil")
 						continue
 					}
+					zbcommon.ZBL.Debug().Str("component", "socket").Msgf("%+v", task)
+					zbcommon.ZBL.Debug().Str("component", "socket").Msg("task received -> dispatching task")
 					err := s.DispatchTaskEvent(event.SubscriberKey, event, task)
 					if err != nil {
 						zbcommon.ZBL.Debug().Str("component", "socket").Msg("dispatching failed")
