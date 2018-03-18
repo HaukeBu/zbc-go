@@ -22,13 +22,13 @@ var processTester *testing.T
 //	Assert(marshallTester, nil, client, false)
 //
 //	var receiverUserType ReceivingType
-//	event.Load(&receiverUserType) // move it to event
+//	event.LoadTask(&receiverUserType) // move it to event
 //
 //	receiverUserType.ID++
 //	Assert(marshallTester, 11, receiverUserType.ID, true)
 //	Assert(marshallTester, "", receiverUserType.Name, true)
 //
-//	event.Update(&receiverUserType)
+//	event.UpdateTask(&receiverUserType)
 //
 //	task, err := client.CompleteTask(event)
 //	Assert(marshallTester, nil, task, false)
@@ -40,10 +40,10 @@ var processTester *testing.T
 //	Assert(marshallTester, nil, client, false)
 //
 //	var receiverUserType SenderType
-//	event.Load(&receiverUserType)
+//	event.LoadTask(&receiverUserType)
 //
 //	receiverUserType.ID++
-//	event.Update(&receiverUserType)
+//	event.UpdateTask(&receiverUserType)
 //
 //	task, err := client.CompleteTask(event)
 //	Assert(marshallTester, nil, task, false)
@@ -55,10 +55,10 @@ var processTester *testing.T
 //	Assert(marshallTester, nil, client, false)
 //
 //	var receiverUserType SenderType
-//	event.Load(&receiverUserType)
+//	event.LoadTask(&receiverUserType)
 //
 //	receiverUserType.ID++
-//	event.Update(&receiverUserType)
+//	event.UpdateTask(&receiverUserType)
 //
 //	task, err := client.CompleteTask(event)
 //	Assert(marshallTester, nil, task, false)

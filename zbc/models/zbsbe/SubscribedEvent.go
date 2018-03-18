@@ -1,5 +1,3 @@
-// Generated SBE (Simple Binary Encoding) message codec
-
 package zbsbe
 
 import (

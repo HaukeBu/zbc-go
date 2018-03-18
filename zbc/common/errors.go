@@ -59,4 +59,5 @@ var (
 
 var (
 	ErrEventNotTask = errors.New("provided events is not a task")
+	ErrEventIsEmpty = errors.New("event is empty")
 )

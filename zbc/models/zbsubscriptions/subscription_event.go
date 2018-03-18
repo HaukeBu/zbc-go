@@ -16,7 +16,19 @@ type SubscriptionEvent struct {
 	Event *zbsbe.SubscribedEvent
 }
 
-func (event *SubscriptionEvent) Update( data interface{}) error {
+func (event *SubscriptionEvent) GetEvent() (map[string]interface{}, error) {
+	if event.Event == nil {
+		return nil, zbcommon.ErrEventIsEmpty
+	}
+	var m map[string]interface{}
+	err := msgpack.Unmarshal(event.Event.Event, &m)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (event *SubscriptionEvent) UpdateTask(data interface{}) error {
 	if event.Task == nil {
 		return zbcommon.ErrEventNotTask
 	}
@@ -29,7 +41,7 @@ func (event *SubscriptionEvent) Update( data interface{}) error {
 	return nil
 }
 
-func (event *SubscriptionEvent) Load(userType interface{}) error {
+func (event *SubscriptionEvent) LoadTask(userType interface{}) error {
 	if event.Task == nil {
 		return zbcommon.ErrEventNotTask
 	}

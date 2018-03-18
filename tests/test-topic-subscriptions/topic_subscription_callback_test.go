@@ -68,8 +68,8 @@ func TestTopicSubscriptionCallback(t *testing.T) {
 	for {
 		op := atomic.LoadUint64(&ops)
 		t.Log("Subscription processed events ", op)
-		if op >= 25 {
-			errs := zbClient.CloseTopicSubscription(subscription)
+		if op >= 50 {
+			errs := subscription.Close()
 			Assert(t, 0, len(errs), true)
 			break
 		}

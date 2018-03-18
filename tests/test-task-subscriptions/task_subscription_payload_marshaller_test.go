@@ -20,7 +20,6 @@ type SenderType struct {
 type ReceivingType struct {
 	ID   int `msgpack:"foo"`
 	Name string `msgpack:"name"`
-
 }
 
 func FooHandler(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
@@ -28,13 +27,13 @@ func FooHandler(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.Subscription
 	Assert(marshallTester, nil, client, false)
 
 	var receiverUserType ReceivingType
-	event.Load(&receiverUserType) // move it to event
+	event.LoadTask(&receiverUserType) // move it to event
 
 	receiverUserType.ID++
 	Assert(marshallTester, 11, receiverUserType.ID, true)
 	Assert(marshallTester, "", receiverUserType.Name, true)
 
-	event.Update(&receiverUserType)
+	event.UpdateTask(&receiverUserType)
 
 	//task, err := client.CompleteTask(event)
 	//Assert(marshallTester, nil, task, false)
