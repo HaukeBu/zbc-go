@@ -21,8 +21,15 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 		return nil, zbcommon.BrokerNotFound
 	}
 
-	topicSubscription := NewTopicSubscription()
+	if prefetchCapacity == 0 {
+		prefetchCapacity = int32(zbcommon.RequestQueueSize)
+	}
+	channelSize := uint64(prefetchCapacity) * uint64(len(*partitions))
+
+	topicSubscription := NewTopicSubscription(channelSize)
+	// TODO: cleanup -> go topicSubscription.Start()
 	zbcommon.ZBL.Debug().Msg("new topic subscription created")
+
 
 	for partitionID := range *partitions {
 		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, startPosition, forceStart, prefetchCapacity)
@@ -55,8 +62,8 @@ func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetc
 	if err != nil {
 		return nil, err
 	}
-	topicConsumer = topicConsumer.WithCallback(cb).WithTopicSubscriptionSvc(ts)
 
+	topicConsumer = topicConsumer.WithCallback(cb).WithTopicSubscriptionSvc(ts)
 	return topicConsumer, err
 }
 

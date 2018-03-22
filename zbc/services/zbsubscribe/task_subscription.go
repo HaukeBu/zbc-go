@@ -89,7 +89,7 @@ func (ts *TaskSubscription) WithCallback(cb TaskSubscriptionCallback) *TaskSubsc
 // NewTaskSubscription is constructor for TaskSubscription object.
 func NewTaskSubscription() *TaskSubscription {
 	return &TaskSubscription{
-		SubscriptionPipelineCtrl:     zbsubscriptions.NewSubscriptionPipelineCtrl(),
+		SubscriptionPipelineCtrl:     zbsubscriptions.NewDefaultSubscriptionPipelineCtrl(),
 		TaskSubscriptionCallbackCtrl: nil,
 		TaskSubscriptionCtrl:         NewTaskSubscriptionCreditsCtrl(),
 	}

@@ -79,9 +79,21 @@ func (sd *safeTopicSubscriptionDispatcher) DispatchTopicEvent(key uint64, messag
 			event := &zbsubscriptions.SubscriptionEvent{
 				Event: message,
 			}
-			zbcommon.ZBL.Debug().Msgf("dispatch topic event")
-			ch.(chan *zbsubscriptions.SubscriptionEvent) <- event
-			zbcommon.ZBL.Debug().Msgf("topic event dispatched")
+
+			topicChannel := ch.(chan *zbsubscriptions.SubscriptionEvent)
+
+			select {
+			case topicChannel <- event: // Put event in the channel unless it is full
+				zbcommon.ZBL.Debug().Msgf("dispatching topic event to OutCh(%d/%d)", len(topicChannel), cap(topicChannel))
+				zbcommon.ZBL.Debug().Msgf("topic event dispatched")
+				break
+			default:
+				panic("Channel full. Discarding value")
+				//zbcommon.ZBL.Debug().Msgf("Channel full. Discarding value")
+
+				break
+			}
+
 			return nil
 		}
 

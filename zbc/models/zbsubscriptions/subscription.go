@@ -35,9 +35,17 @@ func (ts *SubscriptionPipelineCtrl) EventsToProcess(blockSize, wantToProcess, pr
 	}
 }
 
-func NewSubscriptionPipelineCtrl() *SubscriptionPipelineCtrl {
+func NewDefaultSubscriptionPipelineCtrl() *SubscriptionPipelineCtrl {
 	return &SubscriptionPipelineCtrl{
 		MessagesProcessed: 0,
 		OutCh:             make(chan *SubscriptionEvent, zbcommon.RequestQueueSize),
 	}
 }
+
+func NewSizedSubscriptionPipelineCtrl(channelSize uint64) *SubscriptionPipelineCtrl {
+	return &SubscriptionPipelineCtrl{
+		MessagesProcessed: 0,
+		OutCh:             make(chan *SubscriptionEvent, channelSize),
+	}
+}
+

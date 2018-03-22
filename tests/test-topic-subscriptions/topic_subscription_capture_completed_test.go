@@ -28,16 +28,15 @@ func FooHandler(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.Subscription
 	Assert(completeTester, nil, event, false)
 	Assert(completeTester, nil, client, false)
 
-	var receiverUserType ReceivingType
-	event.LoadTask(&receiverUserType)
+	// var receiverUserType ReceivingType
+	// event.LoadTask(&receiverUserType)
+	//
+	// receiverUserType.ID++
+	// Assert(completeTester, 11, receiverUserType.ID, true)
+	// Assert(completeTester, "", receiverUserType.Name, true)
+	//
+	// event.UpdateTask(&receiverUserType)
 
-	receiverUserType.ID++
-	Assert(completeTester, 11, receiverUserType.ID, true)
-	Assert(completeTester, "", receiverUserType.Name, true)
-
-	event.UpdateTask(&receiverUserType)
-
-	client.RefreshTopology()
 	task, err := client.CompleteTask(event)
 	Assert(completeTester, nil, task, false)
 	Assert(completeTester, nil, err, true)
@@ -72,7 +71,7 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 
 	t.Log("Creating topic")
 	hash := RandStringBytes(25)
-	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
+	topic, err := zbClient.CreateTopic(hash, 5)
 	Assert(t, nil, err, true)
 	Assert(t, nil, topic, false)
 	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
@@ -113,13 +112,9 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 	Assert(t, nil, err, true)
 	Assert(t, nil, *foobarSub, false)
 
-	fooSub.ProcessNext(1)
-	barSub.ProcessNext(1)
-	foobarSub.ProcessNext(1)
-
-	fooSub.Close()
-	barSub.Close()
-	foobarSub.Close()
+	go foobarSub.Start()
+	go barSub.Start()
+	go fooSub.Start()
 
 	var ops uint64
 	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, false,
@@ -128,10 +123,13 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 			Assert(t, nil, client, false)
 
 			eventPayload, err := event.GetEvent()
+			if eventPayload["state"] == "WORKFLOW_INSTANCE_COMPLETED" {
+				atomic.AddUint64(&ops, 1)
+			}
+
 			Assert(t, nil, err, true)
 			Assert(t, nil, eventPayload, false)
 
-			atomic.AddUint64(&ops, 1)
 			return nil
 		})
 	Assert(t, nil, subscription, false)

@@ -1,7 +1,6 @@
 package zbsubscribe
 
 import (
-	"math"
 	"sync"
 
 	"github.com/zeebe-io/zbc-go/zbc/common"
@@ -17,7 +16,9 @@ type TopicSubscription struct {
 	*TopicSubscriptionCallbackCtrl
 
 	svc                *TopicSubscriptionSvc
-	lastSucessfulEvent *zbsubscriptions.SubscriptionEvent
+
+	lastSuccessful map[uint16]*zbsubscriptions.SubscriptionEvent
+	//lastSucessfulEvent *zbsubscriptions.SubscriptionEvent
 }
 
 func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.SubscriptionEvent, uint64, error) {
@@ -31,7 +32,10 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 				return nil, i, nil
 			}
 
-			zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msg("received message from socket")
+			zbcommon.ZBL.Debug().
+				Str("component", "TopicSubscription").
+				Msgf("received message from OutCh(%d/%d)", len(ts.OutCh), cap(ts.OutCh))
+
 			errCount = 0
 			for ; errCount < 3; errCount++ {
 				err := ts.ExecuteCallback(msg)
@@ -46,10 +50,8 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 			lastProcessed = msg
 
 			ts.Lock()
-			ts.lastSucessfulEvent = lastProcessed
+			ts.lastSuccessful[lastProcessed.Event.PartitionId] = lastProcessed
 			ts.Unlock()
-
-			zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("%d/%d", i, n)
 		}
 	}
 
@@ -57,19 +59,18 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 }
 
 func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
-	bsize := float32(zbcommon.RequestQueueSize) * float32(0.01)
+	bsize := ts.SubscriptionsInfo[ts.Partitions[0]].PrefetchCapacity - 1
+
 	var toProcess, processed, blockSize uint64 = 0, 0, uint64(bsize)
-	var threshold int = int(math.Ceil(float64(float64(zbcommon.RequestQueueSize) * float64(zbcommon.TopicSubscriptionAckThreshold))))
 
 	for {
 		toProcess = ts.EventsToProcess(blockSize, n, processed)
-		zbcommon.ZBL.Info().Msgf("trying to process %d events", toProcess)
+		zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("trying to process %d events", toProcess)
 		lastProcessed, processCount, err := ts.processNext(toProcess)
-		zbcommon.ZBL.Info().Msgf("processed %d events", processCount)
 
 		if err != nil {
-			zbcommon.ZBL.Error().Msg("handler cannot process event")
-			zbcommon.ZBL.Error().Msg("closing subscription")
+			zbcommon.ZBL.Error().Str("component", "TopicSubscription").Msg("handler cannot process event")
+			zbcommon.ZBL.Error().Str("component", "TopicSubscription").Msg("closing subscription")
 			ts.Close()
 			return true, zbcommon.ErrSubscriptionClosed
 		}
@@ -80,28 +81,33 @@ func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
 
 		processed += processCount
 
-		zbcommon.ZBL.Info().Msgf("processed %d events in total", processed)
+		zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("processed (%d/%d)", processed, n)
 		if n <= processed {
+			zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("n is less than processed (%d/%d) exiting", n, processed)
 			break
 		}
 
-		if len(ts.OutCh) < threshold { // or n > processed
-			zbcommon.ZBL.Info().Msgf("acknowledging events")
-			_, err := ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastProcessed.Event.PartitionId].SubscriptionName, lastProcessed)
+		for partitionID, lastSuccessful := range ts.lastSuccessful {
+			zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("acknowledging events for partition %d", partitionID)
+			_, err = ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Event.PartitionId].SubscriptionName, lastSuccessful)
 			if err != nil {
 				return false, err
 			}
 		}
+
 	}
 
 	return false, nil
 }
 
-func (ts *TopicSubscription) Start() error {
+
+func (ts *TopicSubscription) Start() []error {
 	for {
 		done, err := ts.ProcessNext(zbcommon.RequestQueueSize)
 		if err != nil {
-			return err
+			errs := ts.Close()
+			errs = append(errs, err)
+			return errs
 		}
 
 		if done {
@@ -111,12 +117,12 @@ func (ts *TopicSubscription) Start() error {
 }
 
 func (ts *TopicSubscription) Close() []error {
-	zbcommon.ZBL.Debug().Msg("Closing Subscription")
+	zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msg("Closing Subscription")
 	var errors []error
 	ts.Lock()
-	if ts.lastSucessfulEvent != nil {
-		zbcommon.ZBL.Debug().Msgf("acking last successful event %v\n", ts.lastSucessfulEvent.String())
-		_, err := ts.svc.TopicSubscriptionAck(ts.CloseRequests[ts.lastSucessfulEvent.Event.PartitionId].SubscriptionName, ts.lastSucessfulEvent)
+	for partitionID, lastSuccessful := range ts.lastSuccessful {
+		zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("acking last successful event %v for partitionID %d\n", lastSuccessful.String(), partitionID)
+		_, err := ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Event.PartitionId].SubscriptionName, lastSuccessful)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -142,11 +148,12 @@ func (ts *TopicSubscription) WithCallback(cb TopicSubscriptionCallback) *TopicSu
 }
 
 // NewTopicSubscription is a constructor for TopicSubscriptionCloseRequest object.
-func NewTopicSubscription() *TopicSubscription {
+func NewTopicSubscription(channelSize uint64) *TopicSubscription {
 	return &TopicSubscription{
 		Mutex: &sync.Mutex{},
-		SubscriptionPipelineCtrl:      zbsubscriptions.NewSubscriptionPipelineCtrl(),
+		SubscriptionPipelineCtrl:      zbsubscriptions.NewSizedSubscriptionPipelineCtrl(channelSize),
 		TopicSubscriptionCallbackCtrl: nil,
 		TopicSubscriptionCtrl:         NewTopicSubscriptionAckCtrl(),
+		lastSuccessful: make(map[uint16]*zbsubscriptions.SubscriptionEvent),
 	}
 }
