@@ -18,7 +18,6 @@ type TopicSubscription struct {
 	svc                *TopicSubscriptionSvc
 
 	lastSuccessful map[uint16]*zbsubscriptions.SubscriptionEvent
-	//lastSucessfulEvent *zbsubscriptions.SubscriptionEvent
 }
 
 func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.SubscriptionEvent, uint64, error) {

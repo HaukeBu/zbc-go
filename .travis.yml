@@ -19,7 +19,16 @@ env:
 
 script:
   - dep ensure
-  - make test
+  - make test-setup
+  - make test-socket
+  - make test-topology
+  - make test-exchange
+  - docker rm -f zeebe
+  - docker run --name zeebe -p 51015:51015 -d camunda/zeebe:SNAPSHOT && sleep 5
+  - make test-tasksub
+  - docker rm -f zeebe
+  - docker run --name zeebe -p 51015:51015 -d camunda/zeebe:SNAPSHOT && sleep 5
+  - make test-topicsub
   - make cov
   - bash <(curl -s https://codecov.io/bash) -t 893fb9d0-19f6-49ed-a105-d5189d89dc4a
 

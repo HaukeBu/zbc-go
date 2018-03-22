@@ -27,7 +27,6 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 	channelSize := uint64(prefetchCapacity) * uint64(len(*partitions))
 
 	topicSubscription := NewTopicSubscription(channelSize)
-	// TODO: cleanup -> go topicSubscription.Start()
 	zbcommon.ZBL.Debug().Msg("new topic subscription created")
 
 
