@@ -1,26 +1,26 @@
 package test_topic_subscriptions
 
 import (
-	"testing"
 	"github.com/zeebe-io/zbc-go/zbc"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"testing"
 
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
-	"time"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 	"sync/atomic"
+	"time"
 )
 
 var completeTester *testing.T
 
 type SenderType struct {
-	ID   int `msgpack:"a"`
+	ID   int    `msgpack:"a"`
 	Name string `msgpack:"name"`
 }
 
 type ReceivingType struct {
-	ID   int `msgpack:"foo"`
+	ID   int    `msgpack:"foo"`
 	Name string `msgpack:"name"`
 }
 

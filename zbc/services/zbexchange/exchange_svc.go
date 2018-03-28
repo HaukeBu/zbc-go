@@ -162,7 +162,7 @@ func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(task *zbmsgpack.TaskSubsc
 
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {
-		zbcommon.ZBL.Debug().Msgf("task increasage failed. What do we do?")
+		zbcommon.ZBL.Debug().Msgf("credits refresh failed. What do we do?")
 		return nil, err
 	}
 

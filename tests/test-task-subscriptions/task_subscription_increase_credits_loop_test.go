@@ -2,24 +2,19 @@ package test_task_subscriptions
 
 import (
 	"testing"
+	"time"
 
-	"fmt"
-	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"github.com/zeebe-io/zbc-go/zbc"
+
 	"github.com/zeebe-io/zbc-go/zbc/common"
+
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
-	"os"
 	"sync/atomic"
-	"time"
 )
 
-// type SenderType struct {
-// 	ID int
-// 	Name string
-// }
-
-func TestTaskSubscriptionCompleteTask(t *testing.T) {
+func TestTaskSubscriptionIncreaseCreditsLoop(t *testing.T) {
 	t.Log("Creating client")
 	zbClient, err := zbc.NewClient(BrokerAddr)
 	Assert(t, nil, err, true)
@@ -44,45 +39,46 @@ func TestTaskSubscriptionCompleteTask(t *testing.T) {
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
 
-	t.Log("Creating 1 workflow instance")
-	createdInstance, err := zbClient.CreateWorkflowInstance(hash, zbc.NewWorkflowInstance("demoProcess", -1, payload))
-	Assert(t, nil, err, true)
-	Assert(t, nil, createdInstance, false)
-	Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
-	t.Log("Instance created")
+	instance := zbc.NewWorkflowInstance("demoProcess", -1, payload)
+	wfStart := time.Now()
+	var i, wiCount uint64 = 0, 5000
+	t.Log("Creating 5000 workflow instances")
+	for ; i < wiCount; i++ {
+		createdInstance, err := zbClient.CreateWorkflowInstance(hash, instance)
+		Assert(t, nil, err, true)
+		Assert(t, nil, createdInstance, false)
+		Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
+	}
+	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
-	t.Log("Create task subscription")
+	// MARK: we make payload sufficiently large (wiCount) and credits small.
+	// If everything passes test should finish in time.
+	// Otherwise go test runtime will teardown the test after 10 minutes
 	var ops uint64
 	subStart := time.Now()
 	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
-
-			_, err := zbClient.CompleteTask(event)
-			if err != nil {
-				fmt.Println("ERROR: Failed to CompleteTask")
-				os.Exit(1)
-			}
 		})
 
 	Assert(t, nil, err, true)
 	Assert(t, nil, *subscription, false)
-	t.Logf("Subscription creation took %v", time.Since(subStart))
-
-	t.Log("Starting to consume subscription")
 	go subscription.Start()
+	t.Logf("Subscriptio§n opening took %v", time.Since(subStart))
 
-	t.Log("Starting to monitor subscription")
+	pStart := time.Now()
 	for {
 		op := atomic.LoadUint64(&ops)
-		t.Log("Subscription processed tasks ", op)
-
-		if op >= 1 {
-			errs := subscription.Close()
-			Assert(t, 0, len(errs), true)
+		if op == wiCount {
 			break
 		}
-		time.Sleep(time.Duration(1 * time.Second))
+		time.Sleep(time.Duration(50 * time.Millisecond))
 	}
+	t.Logf("Subscription processing took %v", time.Since(pStart))
 
+	op := atomic.LoadUint64(&ops)
+	Assert(t, uint64(wiCount), op, true)
+
+	errs := subscription.Close()
+	Assert(t, 0, len(errs), true)
 }

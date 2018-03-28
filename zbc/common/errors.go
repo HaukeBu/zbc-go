@@ -2,6 +2,8 @@ package zbcommon
 
 import "errors"
 
+// TODO: Organize errors by services
+
 // Reader Errors
 var (
 	ErrFrameHeaderRead    = errors.New("cannot read bytes for frame header")
@@ -33,8 +35,16 @@ var (
 // RetryDeadlineReached is error which occurs when requestWrapper failed multiple times unsuccessfully.
 var RetryDeadlineReached = errors.New("message retry deadline reached")
 
-// BrokerNotFound is used in transport manager to denote that broker cannot be contacted
-var BrokerNotFound = errors.New("cannot contact the broker")
+var (
+	// BrokerNotFound is used in transport manager to denote that broker cannot be contacted
+	BrokerNotFound             = errors.New("cannot contact the broker")
+	ErrNoPartitionsFound       = errors.New("partitions not found")
+	ErrRoundRobinCtrlNotFound  = errors.New("round robin controller not initialized")
+	ErrDestinationAddrNotFound = errors.New("destination address could not be determined")
+	ErrClusterInfoNotFound     = errors.New("cluster not initialized")
+)
+
+var ErrFailedToOpenTaskSubscription = errors.New("failed to open task subscription")
 
 // TaskSubscriptionCtrl errors
 var (
@@ -60,4 +70,8 @@ var (
 var (
 	ErrEventNotTask = errors.New("provided events is not a task")
 	ErrEventIsEmpty = errors.New("event is empty")
+)
+
+var (
+	SubscriptionIsClosed = errors.New("subscription is closed")
 )

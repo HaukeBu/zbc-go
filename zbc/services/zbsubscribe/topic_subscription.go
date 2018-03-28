@@ -15,7 +15,7 @@ type TopicSubscription struct {
 	*TopicSubscriptionCtrl
 	*TopicSubscriptionCallbackCtrl
 
-	svc                *TopicSubscriptionSvc
+	svc *TopicSubscriptionSvc
 
 	lastSuccessful map[uint16]*zbsubscriptions.SubscriptionEvent
 }
@@ -59,7 +59,6 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 
 func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
 	bsize := ts.SubscriptionsInfo[ts.Partitions[0]].PrefetchCapacity - 1
-
 	var toProcess, processed, blockSize uint64 = 0, 0, uint64(bsize)
 
 	for {
@@ -99,10 +98,9 @@ func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
 	return false, nil
 }
 
-
 func (ts *TopicSubscription) Start() []error {
 	for {
-		done, err := ts.ProcessNext(zbcommon.RequestQueueSize)
+		done, err := ts.ProcessNext(uint64(cap(ts.OutCh)))
 		if err != nil {
 			errs := ts.Close()
 			errs = append(errs, err)
@@ -153,6 +151,6 @@ func NewTopicSubscription(channelSize uint64) *TopicSubscription {
 		SubscriptionPipelineCtrl:      zbsubscriptions.NewSizedSubscriptionPipelineCtrl(channelSize),
 		TopicSubscriptionCallbackCtrl: nil,
 		TopicSubscriptionCtrl:         NewTopicSubscriptionAckCtrl(),
-		lastSuccessful: make(map[uint16]*zbsubscriptions.SubscriptionEvent),
+		lastSuccessful:                make(map[uint16]*zbsubscriptions.SubscriptionEvent),
 	}
 }

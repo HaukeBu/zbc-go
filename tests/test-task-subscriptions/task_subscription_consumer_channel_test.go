@@ -40,9 +40,8 @@ func TestTaskSubscriptionConsumerChannelTest(t *testing.T) {
 	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
-			Assert(t, nil, event, false)
-			Assert(t, nil, client, false)
 		})
+
 	Assert(t, nil, err, true)
 	Assert(t, nil, *subscription, false)
 	t.Logf("Subscription creation took %v", time.Since(subStart))

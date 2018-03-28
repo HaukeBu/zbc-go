@@ -18,7 +18,7 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 
 	if partitions == nil || len(*partitions) == 0 {
 		zbcommon.ZBL.Error().Msgf("topic %s topology not found", topic)
-		return nil, zbcommon.BrokerNotFound
+		return nil, zbcommon.ErrNoPartitionsFound
 	}
 
 	if prefetchCapacity == 0 {
@@ -28,7 +28,6 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 
 	topicSubscription := NewTopicSubscription(channelSize)
 	zbcommon.ZBL.Debug().Msg("new topic subscription created")
-
 
 	for partitionID := range *partitions {
 		sub := ts.OpenTopicPartition(topicSubscription.OutCh, partitionID, topic, subName, startPosition, forceStart, prefetchCapacity)

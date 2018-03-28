@@ -2,6 +2,7 @@ package zbsubscribe
 
 import (
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 )
 
@@ -18,10 +19,10 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 
 	if partitions == nil || len(*partitions) == 0 {
 		zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msgf("topic %s topology not found", topic)
-		return nil, zbcommon.BrokerNotFound
+		return nil, zbcommon.ErrNoPartitionsFound
 	}
 
-	taskSubscription := NewTaskSubscription()
+	taskSubscription := NewTaskSubscription(uint64(len(*partitions)) * uint64(credits))
 	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("new task subscription created")
 
 	for partitionID := range *partitions {
@@ -64,20 +65,25 @@ func (ts *TaskSubscriptionSvc) TaskSubscription(topic, lockOwner, taskType strin
 
 	zbcommon.ZBL.Debug().Msg("TaskSubscription created")
 	taskSubscription = taskSubscription.WithCallback(cb).WithTaskSubscriptionSvc(ts)
+	taskSubscription.initCredits(credits)
+
 	if taskSubscription == nil {
-		return nil, zbcommon.BrokerNotFound
+		return nil, zbcommon.ErrFailedToOpenTaskSubscription
 	}
 	return taskSubscription, err
 }
 
 func (tp *TaskSubscriptionSvc) CloseTaskSubscription(sub *TaskSubscription) []error {
 	var errs []error
-	for _, taskSub := range sub.Subscriptions {
+
+	sub.Subscriptions.Range(func(key, value interface{}) bool {
+		taskSub := value.(*zbmsgpack.TaskSubscriptionInfo)
 		_, err := tp.CloseTaskSubscriptionPartition(taskSub)
 		if err != nil {
 			errs = append(errs, err)
 		}
-	}
+		return true
+	})
 
 	if len(errs) > 0 {
 		return errs

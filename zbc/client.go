@@ -5,8 +5,8 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/services/zbexchange"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 
-	"github.com/zeebe-io/zbc-go/zbc/common"
 	"github.com/vmihailenco/msgpack"
+	"github.com/zeebe-io/zbc-go/zbc/common"
 )
 
 // Client for Zeebe broker with support for clustered deployment.

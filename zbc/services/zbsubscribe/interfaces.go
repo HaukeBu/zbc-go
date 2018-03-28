@@ -21,5 +21,4 @@ type ZeebeAPI interface {
 	zbexchange.LikeExchangeSvc
 	LikeTaskSubscriptionSvc
 	LikeTopicSubscriptionSvc
-
 }

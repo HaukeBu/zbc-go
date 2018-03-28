@@ -3,13 +3,14 @@ package zbtopology
 import (
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbmsgpack"
+	"sync"
 	"time"
 )
 
 // RoundRobinCtrl is used for implementation of round robin algorithm on TopologySvc.
 type RoundRobinCtrl struct {
 	cluster          *zbmsgpack.ClusterTopology
-	lastIndexByTopic map[string]*uint16
+	lastIndexByTopic *sync.Map
 }
 
 func (rr *RoundRobinCtrl) UpdateClusterTopology(c *zbmsgpack.ClusterTopology) {
@@ -19,26 +20,26 @@ func (rr *RoundRobinCtrl) UpdateClusterTopology(c *zbmsgpack.ClusterTopology) {
 
 // PeekPartitionIndex is used to check current status of round robin.
 func (rr *RoundRobinCtrl) PeekPartitionIndex(topic string) *uint16 {
-	lastPartitionUsedIndex, ok := rr.lastIndexByTopic[topic]
+	lastPartitionUsedIndex, ok := rr.lastIndexByTopic.Load(topic)
 	if !ok {
 		if index := rr.cluster.GetRandomPartitionIndex(topic); index != nil {
-			rr.lastIndexByTopic[topic] = index
+			rr.lastIndexByTopic.Store(topic, index)
 			return index
 		}
 
 	}
-	return lastPartitionUsedIndex
+	return lastPartitionUsedIndex.(*uint16)
 }
 
 func (rr *RoundRobinCtrl) incrementLastPartitionIndex(topic string) {
-	if index, ok := rr.lastIndexByTopic[topic]; ok {
-		*index++
-		rr.lastIndexByTopic[topic] = index
+	if index, ok := rr.lastIndexByTopic.Load(topic); ok {
+		*index.(*uint16)++
+		rr.lastIndexByTopic.Store(topic, index)
 	}
 }
 
 func (rr *RoundRobinCtrl) setLastPartitionIndex(topic string, val uint16) {
-	rr.lastIndexByTopic[topic] = &val
+	rr.lastIndexByTopic.Store(topic, &val)
 }
 
 func (rr *RoundRobinCtrl) Partitions(topic string) ([]uint16, error) {
@@ -74,5 +75,5 @@ func (rr *RoundRobinCtrl) nextPartitionID(topic string) (*uint16, error) {
 }
 
 func NewRoundRobinCtl(cluster *zbmsgpack.ClusterTopology) *RoundRobinCtrl {
-	return &RoundRobinCtrl{cluster, make(map[string]*uint16)}
+	return &RoundRobinCtrl{cluster, &sync.Map{}}
 }

@@ -15,4 +15,3 @@ func (ps *ProtocolSerializer) UnmarshalFromFile(path string) (*zbdispatch.Messag
 func NewProtocolSerializer() *ProtocolSerializer {
 	return &ProtocolSerializer{}
 }
-

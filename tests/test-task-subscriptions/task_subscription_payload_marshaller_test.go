@@ -13,12 +13,12 @@ import (
 var marshallTester *testing.T
 
 type SenderType struct {
-	ID   int `msgpack:"a"`
+	ID   int    `msgpack:"a"`
 	Name string `msgpack:"name"`
 }
 
 type ReceivingType struct {
-	ID   int `msgpack:"foo"`
+	ID   int    `msgpack:"foo"`
 	Name string `msgpack:"name"`
 }
 

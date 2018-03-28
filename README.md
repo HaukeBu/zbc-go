@@ -26,79 +26,6 @@ or
 
 ```git clone git@github.com:zeebe-io/zbc-go.git```
 
-### Command Line Interface ```zbctl```
-
-#### Releases
-
-Check out the [releases page](https://github.com/zeebe-io/zbc-go/releases) for the latest release of the `zbctl` command line tool for your platform.
-
-#### Building from Source
-
-```
-cd $GOPATH/src/github.com/zeebe-io/zbc-go
-make build
-```
-This will build ```zbctl```. You can find it inside ```target/bin```.
-
-or
-
-you can install it globally with.
-```
-cd $GOPATH/src/github.com/zeebe-io/zbc-go
-make build
-sudo make install
-```
-
-
-## Usage
-
-```
-NAME:
-   zbctl - Zeebe control client application
-
-USAGE:
-   zbctl [global options] command [command options] [arguments...]
-
-AUTHOR:
-   Zeebe Team <info@zeebe.io>
-
-COMMANDS:
-     create, c       create a resource
-     subscribe, sub  subscribe to a task or topic
-     describe, desc  describe a resource
-     help, h         Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --config value, --cfg value  Location of the configuration file. (default: "/etc/zeebe/config.toml") [$ZBC_CONFIG]
-   --help, -h                   show help
-   --version, -v                print the version
-```
-
-To execute a command, first describe a resource as a yaml file (look at examples folder for examples).
-
-To create a task:
-
-```
-$ zbctl create task examples/create-task.yaml
-CREATED
-```
-
-To deploy a workflow:
-
-```
-$ zbctl create workflow examples/demoProcess.bpmn
-DEPLOYMENT_CREATED
-```
-
-To create a workflow instance:
-
-```
-$ zbctl create instance --topic default-topic examples/create-workflow-instance.yaml
-WORKFLOW_INSTANCE_CREATED
-```
-To point your ```zbctl``` to some other broker edit ```config.toml``` which can be find in the ```/etc/zeebe/config.toml```.
-
-
 ## Contributing
 
   * Get started by checking our [contribution guidelines](https://github.com/zeebe-io/zbc-go/blob/master/CONTRIBUTING.md).
@@ -109,10 +36,6 @@ To point your ```zbctl``` to some other broker edit ```config.toml``` which can 
   * The [Zeebe Protocol Specification](http://www.zeebe.io/) contains a wealth of useful information.
   * If you have any questions, just [ask](https://github.com/zeebe-io/zbc-go/issues)!
 
-
-## Credits
-* Special thanks to Sebastian Menski and Daniel Meyer.
-* Big thanks to everyone involved in Zeebe.
 
 ## Code of Conduct
 

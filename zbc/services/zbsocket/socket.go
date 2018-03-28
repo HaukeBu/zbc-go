@@ -83,7 +83,6 @@ func (s *socket) receiver() {
 						zbcommon.ZBL.Error().Str("component", "socket").Msg("task is nil")
 						continue
 					}
-					zbcommon.ZBL.Debug().Str("component", "socket").Msgf("%+v", task)
 					zbcommon.ZBL.Debug().Str("component", "socket").Msg("task received -> dispatching task")
 					err := s.DispatchTaskEvent(event.SubscriberKey, event, task)
 					if err != nil {

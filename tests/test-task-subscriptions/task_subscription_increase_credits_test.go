@@ -26,7 +26,7 @@ func TestTaskSubscriptionIncreaseCredits(t *testing.T) {
 	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
 	Assert(t, nil, err, true)
 	Assert(t, nil, topic, false)
-	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+	t.Logf("Topic %s created with %d partitions", hash, 5)
 
 	t.Log("Creating workflow")
 	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")

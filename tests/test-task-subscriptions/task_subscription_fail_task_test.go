@@ -8,7 +8,9 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 
+	"fmt"
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
+	"os"
 	"sync/atomic"
 	"time"
 )
@@ -51,13 +53,13 @@ func TestTaskSubscriptionFailTask(t *testing.T) {
 	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
-			Assert(t, nil, event, false)
-			Assert(t, nil, client, false)
-
-			task, err := zbClient.FailTask(event)
-			Assert(t, nil, task, false)
-			Assert(t, nil, err, true)
+			_, err := zbClient.FailTask(event)
+			if err != nil {
+				fmt.Println("ERROR: Failed to FailTask")
+				os.Exit(1)
+			}
 		})
+
 	Assert(t, nil, err, true)
 	Assert(t, nil, *subscription, false)
 	t.Logf("Subscription creation took %v", time.Since(subStart))

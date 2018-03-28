@@ -36,7 +36,7 @@ func (svc *TopologySvc) GetRoundRobinCtl() *RoundRobinCtrl {
 
 func (svc *TopologySvc) TopicPartitionsAddrs(topic string) (*map[uint16]string, error) {
 	if svc.Cluster == nil {
-		return nil, zbcommon.BrokerNotFound
+		return nil, zbcommon.ErrPartitionsNotFound
 	}
 
 	addrs := make(map[uint16]string)
@@ -60,7 +60,7 @@ func (svc *TopologySvc) PeekPartitionIndex(topic string) *uint16 {
 func (svc *TopologySvc) NextPartitionID(topic string) (*uint16, error) {
 	if svc.RoundRobin == nil {
 		zbcommon.ZBL.Error().Str("component", "TopologySvc::NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", zbcommon.BrokerNotFound)
-		return nil, zbcommon.BrokerNotFound
+		return nil, zbcommon.ErrRoundRobinCtrlNotFound
 	}
 	partitionID, err := svc.RoundRobin.nextPartitionID(topic)
 	if err != nil {
@@ -178,7 +178,10 @@ func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdis
 		addr, err := svc.getDestinationAddr(request.Payload)
 
 		if err == zbcommon.BrokerNotFound {
-			return nil, zbcommon.BrokerNotFound
+			return nil, zbcommon.ErrDestinationAddrNotFound
+		}
+		if err == zbcommon.ErrClusterInfoNotFound {
+			svc.RefreshTopology()
 		}
 		request.Addr = addr
 	}
@@ -215,7 +218,7 @@ func (svc *TopologySvc) getDestinationAddr(msg *zbdispatch.Message) (string, err
 	defer svc.Unlock()
 
 	if svc.Cluster == nil {
-		return "", zbcommon.BrokerNotFound
+		return "", zbcommon.ErrClusterInfoNotFound
 	}
 
 	if msg.IsTopologyMessage() && svc.Cluster == nil {

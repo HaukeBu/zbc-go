@@ -1,19 +1,19 @@
 package test_topic_subscriptions
 
 import (
-"testing"
+	"testing"
 
-"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
+	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 
-"github.com/zeebe-io/zbc-go/zbc"
-"github.com/zeebe-io/zbc-go/zbc/common"
-"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
+	"github.com/zeebe-io/zbc-go/zbc"
+	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 
-"sync/atomic"
-"time"
+	"sync/atomic"
+	"time"
 
-. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"fmt"
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
 func TestTopicSubscriptionCloseOnError(t *testing.T) {
