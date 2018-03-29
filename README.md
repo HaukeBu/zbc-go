@@ -31,7 +31,7 @@ or
   * Get started by checking our [contribution guidelines](https://github.com/zeebe-io/zbc-go/blob/master/CONTRIBUTING.md).
   * Make sure you follow our [code of conduct](https://github.com/zeebe-io/zbc-go/blob/master/CODE_OF_CONDUCT.md).
   * Checkout client documentation for [developers](http://godoc.org/github.com/zeebe-io/zbc-go/zbc)
-  * Checkout zbctl documentation for [ops](http://godoc.org/github.com/zeebe-io/zbc-go/cmd)
+  * Checkout zbctl documentation for [ops](http://godoc.org/github.com/zeebe-io/zbctl/cmd)
   * Read the zbc-go [wiki](https://github.com/zeebe-io/zbc-go/wiki) for more technical and design details.
   * The [Zeebe Protocol Specification](http://www.zeebe.io/) contains a wealth of useful information.
   * If you have any questions, just [ask](https://github.com/zeebe-io/zbc-go/issues)!
