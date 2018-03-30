@@ -83,12 +83,7 @@ func (svc *TopologySvc) NextPartitionID(topic string) (*uint16, error) {
 func (svc *TopologySvc) getPartitions() (*zbmsgpack.PartitionCollection, error) {
 	message := svc.CreatePartitionRequest()
 	request := zbsocket.NewRequestWrapper(message)
-	if svc.Cluster == nil || len(svc.Cluster.Brokers) == 0 {
-		request.Addr = svc.bootstrapAddr
-	} else {
-		broker := svc.Cluster.GetRandomBroker()
-		request.Addr = broker.Addr()
-	}
+
 	resp, err := svc.ExecuteRequest(request)
 	if err != nil {
 		return nil, err
@@ -113,6 +108,10 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 	}
 
 	topology := svc.UnmarshalTopology(resp)
+	svc.Lock()
+	// the following partition request already needs the topology
+	svc.Cluster = topology
+	svc.Unlock()
 
 	partitionCollection, err := svc.getPartitions()
 	if err != nil {
@@ -125,7 +124,6 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 	svc.Lock()
 	defer svc.Unlock()
 
-	svc.Cluster = topology
 	svc.Cluster.FromPartitionCollection(partitionCollection)
 	return topology, err
 }
