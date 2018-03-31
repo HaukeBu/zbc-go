@@ -10,6 +10,7 @@ import (
 	diodes "code.cloudfoundry.org/go-diodes"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/diode"
+	"strings"
 )
 
 // ZBL is pointer to client logger
@@ -21,6 +22,7 @@ var zbLogpath *string
 func init() {
 	if ZBL == nil {
 		InitLogger()
+		SetLogLevel()
 	}
 }
 
@@ -42,14 +44,27 @@ func SetLogPrefix(prefix string) {
 
 // SetLogLevel will determine how much logging we want.
 func SetLogLevel() {
-	// TODO: implement setLogLevel function
-	switch os.Getenv("ZBC_LOG_LEVEL") {
+	zerolog.SetGlobalLevel(getLogLevelFromEnv())
+}
+
+func getLogLevelFromEnv() zerolog.Level {
+	logLevel := strings.ToLower(os.Getenv("ZBC_LOG_LEVEL"))
+	switch logLevel {
+	case "debug":
+		return zerolog.DebugLevel
 	case "info":
-
-		break
+		return zerolog.InfoLevel
+	case "warn":
+		return zerolog.WarnLevel
+	case "error":
+		return zerolog.ErrorLevel
+	case "fatal":
+		return zerolog.FatalLevel
+	case "panic":
+		return zerolog.PanicLevel
 	default:
-
-		break
+		// default to info
+		return zerolog.InfoLevel
 	}
 }
 
