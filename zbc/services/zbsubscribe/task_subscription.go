@@ -76,7 +76,7 @@ func (ts *TaskSubscription) processNext(n uint64) uint64 {
 				return i
 			}
 
-			go ts.consumeCredit(msg.Event.PartitionId)
+			ts.consumeCredit(msg.Event.PartitionId)
 			ts.ExecuteCallback(msg)
 		}
 	}
@@ -123,7 +123,8 @@ func (ts *TaskSubscription) checkCredits(creditsSize int32) {
 			}
 		}
 
-		return false
+		// iterate over all partitions in credits map
+		return true
 	})
 }
 
@@ -140,7 +141,7 @@ func (ts *TaskSubscription) ProcessNext(n uint64) error {
 		p := ts.processNext(toProcess)
 		processed += p
 
-		go ts.checkCredits(sub.Credits)
+		ts.checkCredits(sub.Credits)
 		zbcommon.ZBL.Info().Msgf("processed %d tasks", processed)
 		if n <= processed || p < toProcess {
 			break
