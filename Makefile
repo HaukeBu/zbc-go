@@ -27,45 +27,48 @@ cov:
 	cat .coverage/*.txt > coverage.txt
 	rm .coverage/*.txt
 
-test-protocol:
+.PHONY: cov-setup
+cov-setup:
+	mkdir -p .coverage
+
+test-protocol: cov-setup
 	go test -race -coverprofile=.coverage/protocol.txt -covermode=atomic zbc/models/zbprotocol/*.go -v
 
-test-sbe:
+test-sbe: cov-setup
 	go test -race -coverprofile=.coverage/sbe.txt -covermode=atomic zbc/models/zbsbe/*.go -v
 
-test-msgpack:
+test-msgpack: cov-setup
 	go test -race -coverprofile=.coverage/msgpack.txt -covermode=atomic zbc/models/zbmsgpack/*.go -v
 
-test-hexdump:
+test-hexdump: cov-setup
 	go test -race -coverprofile=.coverage/hexdump.txt -covermode=atomic tests/test-zbdump/*.go -v
 
-test-exchange:	
+test-exchange: cov-setup
 	go test -race -coverprofile=.coverage/exchange.txt -covermode=atomic tests/test-exchange/*.go -v
 
-test-tasksub:
+test-tasksub: cov-setup
 	go test -race -coverprofile=.coverage/tasksub.txt -covermode=atomic tests/test-task-subscriptions/*.go -v
 
-test-topicsub:	
+test-topicsub: cov-setup
 	go test -race -coverprofile=.coverage/topicsub.txt -covermode=atomic tests/test-topic-subscriptions/*.go -v
 
-test-socket:
+test-socket: cov-setup
 	go test -race -coverprofile=.coverage/socket.txt -covermode=atomic tests/test-socket/*.go -v
 
-test-topology:
+test-topology: cov-setup
 	go test -race -coverprofile=.coverage/topology.txt -covermode=atomic tests/test-topology/*.go -v
 
-test-setup:
-	mkdir -p .coverage
+test-setup: cov-setup
 	go test -race -coverprofile=.coverage/setup.txt -covermode=atomic tests/*.go -v
 
 test:
 	make test-setup
-	make test-socket 
+	make test-socket
 	make test-topology
 	make test-exchange
 	make test-tasksub
 	make test-topicsub
-	
+
 	make test-protocol
 	make test-sbe
 	make test-msgpack
