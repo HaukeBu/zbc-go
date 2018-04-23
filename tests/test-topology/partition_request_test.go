@@ -13,7 +13,7 @@ func TestGetPartitions(t *testing.T) {
 	Assert(t, nil, err, true)
 	Assert(t, nil, zbClient, false)
 
-	topology, err := zbClient.RefreshTopology()
+	topology, err := zbClient.GetTopology()
 	Assert(t, nil, err, true)
 	Assert(t, nil, topology, false)
 

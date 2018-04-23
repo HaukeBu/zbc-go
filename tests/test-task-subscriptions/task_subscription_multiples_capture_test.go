@@ -1,7 +1,6 @@
 package test_task_subscriptions
 
 import (
-	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 	"github.com/zeebe-io/zbc-go/zbc/services/zbsubscribe"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"sync/atomic"
 	"time"
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
 func TestTaskSubscriptionMultiplesCaptureEndEvent(t *testing.T) {
@@ -20,12 +20,7 @@ func TestTaskSubscriptionMultiplesCaptureEndEvent(t *testing.T) {
 	Assert(t, nil, zbClient, false)
 	t.Log("Client created")
 
-	t.Log("Creating topic")
-	hash := RandStringBytes(25)
-	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
-	Assert(t, nil, err, true)
-	Assert(t, nil, topic, false)
-	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+	hash := CreateRandomTopicWithTimeout(t, zbClient)
 
 	t.Log("Creating workflow")
 	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")

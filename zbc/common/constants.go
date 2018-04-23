@@ -3,7 +3,7 @@ package zbcommon
 import "time"
 
 // RequestTimeout specifies default timeout for responder.
-const RequestTimeout = 5
+const RequestTimeout = 600
 
 // TopologyRefreshInterval defines time to live of cluster topology object.
 const TopologyRefreshInterval = 60

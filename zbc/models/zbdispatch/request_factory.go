@@ -161,7 +161,7 @@ func (rf *RequestFactory) TopologyRequest() *Message {
 	t := &zbmsgpack.TopologyRequest{}
 	cmr := &zbsbe.ControlMessageRequest{
 		MessageType: zbsbe.ControlMessageType.REQUEST_TOPOLOGY,
-
+		// MARK: PartitionID is by default 0, which is excatly what we want since partitionID 0 is system-partition
 		Data: nil,
 	}
 	return rf.newControlMessage(cmr, t)
@@ -183,7 +183,7 @@ func (rf *RequestFactory) DeployWorkflowRequest(topic string, resources []*zbmsg
 	return rf.newCommandMessage(commandRequest, deployment)
 }
 
-func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionId uint16, lockOwner, taskType string, credits int32) *Message {
+func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionID uint16, lockOwner, taskType string, credits int32) *Message {
 	taskSub := &zbmsgpack.TaskSubscriptionInfo{
 		Credits:       credits,
 		LockDuration:  300000,
@@ -199,7 +199,7 @@ func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionId uint16, lockOw
 	}
 	controlRequest := &zbsbe.ControlMessageRequest{
 		MessageType: zbsbe.ControlMessageType.ADD_TASK_SUBSCRIPTION,
-		PartitionId: partitionId,
+		PartitionId: partitionID,
 		Data:        b,
 	}
 	msg.SetSbeMessage(controlRequest)
@@ -208,7 +208,7 @@ func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionId uint16, lockOw
 	return &msg
 }
 
-func (rf *RequestFactory) IncreaseTaskSubscriptionCreditsRequest(ts *zbmsgpack.TaskSubscriptionInfo) *Message {
+func (rf *RequestFactory) IncreaseTaskSubscriptionCreditsRequest(partitionID uint16, ts *zbmsgpack.TaskSubscriptionInfo) *Message {
 	var msg Message
 
 	b, err := msgpack.Marshal(ts)
@@ -217,6 +217,7 @@ func (rf *RequestFactory) IncreaseTaskSubscriptionCreditsRequest(ts *zbmsgpack.T
 	}
 	controlRequest := &zbsbe.ControlMessageRequest{
 		MessageType: zbsbe.ControlMessageType.INCREASE_TASK_SUBSCRIPTION_CREDITS,
+		PartitionId: partitionID,
 		Data:        b,
 	}
 	msg.SetSbeMessage(controlRequest)
@@ -224,7 +225,7 @@ func (rf *RequestFactory) IncreaseTaskSubscriptionCreditsRequest(ts *zbmsgpack.T
 	return &msg
 }
 
-func (rf *RequestFactory) CloseTaskSubscriptionRequest(ts *zbmsgpack.TaskSubscriptionInfo) *Message {
+func (rf *RequestFactory) CloseTaskSubscriptionRequest(partitionID uint16, ts *zbmsgpack.TaskSubscriptionInfo) *Message {
 	var msg Message
 
 	b, err := msgpack.Marshal(ts)
@@ -233,6 +234,7 @@ func (rf *RequestFactory) CloseTaskSubscriptionRequest(ts *zbmsgpack.TaskSubscri
 	}
 	controlRequest := &zbsbe.ControlMessageRequest{
 		MessageType: zbsbe.ControlMessageType.REMOVE_TASK_SUBSCRIPTION,
+		PartitionId: partitionID,
 		Data:        b,
 	}
 	msg.SetSbeMessage(controlRequest)

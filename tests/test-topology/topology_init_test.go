@@ -7,10 +7,11 @@ import (
 )
 
 func TestTopologyInit(t *testing.T) {
-	svc := zbtopology.NewTopologySvc(BrokerAddr)
+	svc, err := zbtopology.NewTopologySvc(BrokerAddr)
 	Assert(t, nil, svc, false)
+	Assert(t, nil, err, true)
 
-	topology, err := svc.RefreshTopology()
+	topology, err := svc.GetTopology()
 	Assert(t, nil, topology, false)
 	Assert(t, nil, err, true)
 }

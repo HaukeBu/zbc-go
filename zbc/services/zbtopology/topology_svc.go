@@ -59,15 +59,13 @@ func (svc *TopologySvc) PeekPartitionIndex(topic string) *uint16 {
 
 func (svc *TopologySvc) NextPartitionID(topic string) (*uint16, error) {
 	if svc.RoundRobin == nil {
-		zbcommon.ZBL.Error().Str("component", "TopologySvc::NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", zbcommon.BrokerNotFound)
+		zbcommon.ZBL.Error().Str("component", "TopologySvc::NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", zbcommon.ErrBrokerNotFound)
 		return nil, zbcommon.ErrRoundRobinCtrlNotFound
 	}
+
 	partitionID, err := svc.RoundRobin.nextPartitionID(topic)
 	if err != nil {
-		zbcommon.ZBL.Error().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msgf("nextPartitionID failed for topic %s :: %+v", topic, err)
-		zbcommon.ZBL.Info().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msg("Refreshing topology")
-
-		_, err := svc.RefreshTopology()
+		_, err := svc.GetTopology()
 		newPartitionID, err := svc.RoundRobin.nextPartitionID(topic)
 		if err != nil {
 			zbcommon.ZBL.Error().Str("component", "TopologySvc").Str("method", "NextPartitionID").Msgf("RoundRobin controller is nil :: %+v", err)
@@ -109,7 +107,7 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 
 	topology := svc.UnmarshalTopology(resp)
 	svc.Lock()
-	// the following partition request already needs the topology
+	// MARK: the following partition request already needs the topology
 	svc.Cluster = topology
 	svc.Unlock()
 
@@ -128,11 +126,15 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 	return topology, err
 }
 
-func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
-	zbcommon.ZBL.Debug().Str("component", "TopologySvc").Str("method", "RefreshTopology").Msg("About to refresh topology.")
+func (svc *TopologySvc) GetTopology() (*zbmsgpack.ClusterTopology, error) {
+	zbcommon.ZBL.Debug().
+		Str("component", "TopologySvc").
+		Str("method", "GetTopology").
+		Msg("About to refresh topology.")
 
 	topology, err := svc.getTopology()
 	if err != nil {
+		zbcommon.ZBL.Error().Str("component", "TopologySvc").Msgf("error on fetching topology: %+v", err)
 		return nil, err
 	}
 
@@ -153,7 +155,7 @@ func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
 
 					if time.Since(lastUpdate) > zbcommon.TopologyRefreshInterval*time.Second {
 						zbcommon.ZBL.Debug().Msg("topology ticker :: refreshing topology")
-						_, err := svc.RefreshTopology()
+						_, err := svc.GetTopology()
 						if err != nil {
 							// TODO: do something with error here
 						}
@@ -173,24 +175,29 @@ func (svc *TopologySvc) RefreshTopology() (*zbmsgpack.ClusterTopology, error) {
 
 func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdispatch.Message, error) {
 	if len(request.Addr) == 0 {
-		addr, err := svc.getDestinationAddr(request.Payload)
-
-		if err == zbcommon.BrokerNotFound {
-			return nil, zbcommon.ErrDestinationAddrNotFound
+		zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msg("request address not set, trying to find destination")
+		addr, err := svc.findDestinationAddress(request.Payload)
+		if err != nil {
+			return nil, err
 		}
-		if err == zbcommon.ErrClusterInfoNotFound {
-			svc.RefreshTopology()
-		}
-		request.Addr = addr
+		request.Addr = *addr
+		zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msgf("address for request is %s", request.Addr)
 	}
 
+	zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msgf("executing on %+v", request.Addr)
 	svc.transportSvc.ExecTransport(request)
 
+	zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msg("waiting for response")
 	select {
+	case <-time.After(time.Duration(zbcommon.RequestTimeout*time.Second)):
+		return nil, zbcommon.ErrTimeout
+
 	case resp := <-request.ResponseCh:
+		zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msgf("received response")
 		return resp, nil
 
 	case err := <-request.ErrorCh:
+		zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msgf("received error %+v", err)
 		netErr, ok := err.(*net.OpError)
 		if ok {
 			// INFO: exception is cause of network failure
@@ -198,7 +205,7 @@ func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdis
 		} else if svc.Cluster != nil {
 			// INFO: error is caused cause of broker
 			zbcommon.ZBL.Debug().Msg("topology_svc::error: cluster is not initialized")
-			topology, err := svc.RefreshTopology()
+			topology, err := svc.GetTopology()
 			if err != nil {
 				return nil, err
 			}
@@ -211,31 +218,36 @@ func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdis
 	}
 }
 
-func (svc *TopologySvc) getDestinationAddr(msg *zbdispatch.Message) (string, error) {
+func (svc *TopologySvc) findDestinationAddress(msg *zbdispatch.Message) (*string, error) {
 	svc.Lock()
 	defer svc.Unlock()
 
-	if svc.Cluster == nil {
-		return "", zbcommon.ErrClusterInfoNotFound
-	}
-
-	if msg.IsTopologyMessage() && svc.Cluster == nil {
-		return svc.bootstrapAddr, nil
-	}
-
-	partitionID := msg.ForPartitionId()
-
-	if partitionID != nil {
-		if addr, ok := svc.Cluster.AddrByPartitionID[*partitionID]; ok {
-			return addr, nil
+	if svc.Cluster == nil && !msg.IsTopologyMessage() {
+		svc.GetTopology()
+		if svc.Cluster == nil {
+			return nil, zbcommon.ErrClusterInfoNotFound
 		}
 	}
 
-	return "", zbcommon.BrokerNotFound
+	if msg.IsTopologyMessage() && svc.Cluster == nil {
+		return &svc.bootstrapAddr, nil
+	}
+
+	partitionID := msg.ForPartitionId()
+	if partitionID != nil {
+		if addr, ok := svc.Cluster.AddrByPartitionID[*partitionID]; ok {
+			zbcommon.ZBL.Debug().Msgf("searching for %+v in %+v", *partitionID, svc.Cluster.AddrByPartitionID)
+			return &addr, nil
+		}
+	}
+
+	return nil, zbcommon.ErrDestinationAddrNotFound
 }
 
-func NewTopologySvc(bootstrapAddr string) *TopologySvc {
-	// TODO: validate bootstrapAddr as valid URI/IP
+func NewTopologySvc(bootstrapAddr string) (*TopologySvc, error) {
+	if !zbcommon.IsIPv4(bootstrapAddr) {
+		return nil, zbcommon.ErrWrongIPFormat
+	}
 
 	return &TopologySvc{
 		RWMutex:          &sync.RWMutex{},
@@ -247,5 +259,5 @@ func NewTopologySvc(bootstrapAddr string) *TopologySvc {
 		bootstrapAddr:    bootstrapAddr,
 		Cluster:          nil,
 		RoundRobin:       nil,
-	}
+	}, nil
 }

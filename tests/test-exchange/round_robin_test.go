@@ -14,14 +14,17 @@ import (
 )
 
 func TestRoundRobin(t *testing.T) {
+	topologySvc, err := zbtopology.NewTopologySvc(BrokerAddr)
+	Assert(t, nil, err, true)
+
 	client := &zbexchange.ExchangeSvc{
-		LikeTopologySvc: zbtopology.NewTopologySvc(BrokerAddr),
+		LikeTopologySvc: topologySvc,
 		RequestFactory:  zbdispatch.NewRequestFactory(),
 		ResponseHandler: zbdispatch.NewResponseHandler(),
 	}
 
-	t.Log("RefreshTopology starting ")
-	topology, err := client.RefreshTopology()
+	t.Log("GetTopology starting ")
+	topology, err := client.GetTopology()
 	Assert(t, nil, topology, false)
 	Assert(t, nil, err, true)
 	t.Logf("Topology :: %+v", topology)

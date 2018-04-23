@@ -10,7 +10,7 @@ type LikeTopologySvc interface {
 	//GetPartitions() (*zbmsgpack.PartitionCollection, error)
 	//InitTopology() (*zbmsgpack.ClusterTopology, error)
 
-	RefreshTopology() (*zbmsgpack.ClusterTopology, error)
+	GetTopology() (*zbmsgpack.ClusterTopology, error)
 	TopicPartitionsAddrs(topic string) (*map[uint16]string, error)
 
 	GetRoundRobinCtl() *RoundRobinCtrl

@@ -54,6 +54,7 @@ func (rr *RoundRobinCtrl) Partitions(topic string) ([]uint16, error) {
 func (rr *RoundRobinCtrl) nextPartitionID(topic string) (*uint16, error) {
 	partitions, err := rr.Partitions(topic)
 	if err != nil {
+		zbcommon.ZBL.Error().Str("component", "RoundRobinCtrl").Msgf("cannot fetch partition information: %+v\n", err)
 		return nil, err
 	}
 	partitionsLength := uint16(len(partitions) - 1)
@@ -68,7 +69,6 @@ func (rr *RoundRobinCtrl) nextPartitionID(topic string) (*uint16, error) {
 			rr.incrementLastPartitionIndex(topic)
 		}
 
-		// TODO: zbc-go/issues#40 + zbc-go/issues#48
 		return &partitionID, nil
 	}
 	return nil, zbcommon.ErrClusterPartialInformation

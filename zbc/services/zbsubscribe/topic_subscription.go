@@ -58,10 +58,20 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 }
 
 func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
+	if n == 0 {
+		return true, zbcommon.ErrCannotProcessZeroEvents
+	}
+
 	bsize := ts.SubscriptionsInfo[ts.Partitions[0]].PrefetchCapacity - 1
 	var toProcess, processed, blockSize uint64 = 0, 0, uint64(bsize)
 
 	for {
+		zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("processed (%d/%d)", processed, n)
+		if n <= processed {
+			zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("n is less than processed (%d/%d) exiting", n, processed)
+			break
+		}
+
 		toProcess = ts.EventsToProcess(blockSize, n, processed)
 		zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("trying to process %d events", toProcess)
 		lastProcessed, processCount, err := ts.processNext(toProcess)
@@ -78,12 +88,6 @@ func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
 		}
 
 		processed += processCount
-
-		zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("processed (%d/%d)", processed, n)
-		if n <= processed {
-			zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("n is less than processed (%d/%d) exiting", n, processed)
-			break
-		}
 
 		for partitionID, lastSuccessful := range ts.lastSuccessful {
 			zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("acknowledging events for partition %d", partitionID)

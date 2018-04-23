@@ -20,8 +20,12 @@ func NewClient(bootstrapAddr string) (*Client, error) {
 		zbcommon.InitLogger()
 	}
 
-	exchangeSvc := zbexchange.NewExchangeSvc(bootstrapAddr)
-	topology, err := exchangeSvc.RefreshTopology()
+	exchangeSvc, err := zbexchange.NewExchangeSvc(bootstrapAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	topology, err := exchangeSvc.GetTopology()
 	if err != nil {
 		return nil, err
 	}

@@ -40,10 +40,14 @@ func (ts *TaskSubscription) increaseCredits() {
 		s := value.(*zbmsgpack.TaskSubscriptionInfo)
 
 		for i := 0; i < 3; i++ {
-			_, creditsErr := ts.svc.IncreaseTaskSubscriptionCredits(s)
+			_, creditsErr := ts.svc.IncreaseTaskSubscriptionCredits(key.(uint16), s)
 			if creditsErr != nil {
-				zbcommon.ZBL.Error().Msg("increasing credits failed on partition")
+				zbcommon.ZBL.Error().Msgf("increasing credits failed on partition: %s", creditsErr)
 				continue
+			}
+			if i == 2 && creditsErr != nil {
+				ts.Close()
+				return false
 			}
 			return true
 		}
@@ -62,7 +66,9 @@ func (ts *TaskSubscription) processNext(n uint64) uint64 {
 	zbcommon.ZBL.Info().
 		Str("component", "TaskSubscription").
 		Str("method", "processNext").
-		Msgf("About to process %d events", n)
+		Msgf("About to process %d events from OutCh(%d)", n, len(ts.OutCh))
+
+	ts.checkCredits(int32(n))
 
 	var i uint64 = 0
 	for ; i < n; i++ {
@@ -71,18 +77,22 @@ func (ts *TaskSubscription) processNext(n uint64) uint64 {
 			if !ok {
 				zbcommon.ZBL.Debug().
 					Str("component", "TaskSubscription").
+					Str("method", "processNext").
 					Msgf("cannot read from OutCh(%d/%d)", len(ts.OutCh), cap(ts.OutCh))
 
 				return i
 			}
 
 			ts.consumeCredit(msg.Event.PartitionId)
+			zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("credits consumed on partition %d", msg.Event.PartitionId)
 			ts.ExecuteCallback(msg)
+			zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("callback executed for iteration %d/%d", i+1, n)
 		}
 	}
 
 	zbcommon.ZBL.Debug().
 		Str("component", "TaskSubscription").
+		Str("method", "processNext").
 		Msgf("finished processing %d events", n)
 
 	return n
@@ -96,6 +106,8 @@ func (ts *TaskSubscription) initCredits(size int32) {
 
 func (ts *TaskSubscription) consumeCredit(partitionID uint16) {
 	credits, ok := ts.credits.Load(partitionID)
+	zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "consumeCredit").Msgf("consuming credits: %+v", credits)
+
 	if ok {
 		c := credits.(int32)
 		c--
@@ -103,18 +115,22 @@ func (ts *TaskSubscription) consumeCredit(partitionID uint16) {
 	}
 }
 
-func (ts *TaskSubscription) checkCredits(creditsSize int32) {
+func (ts *TaskSubscription) checkCredits(limit int32) {
 	ts.credits.Range(func(key, value interface{}) bool {
 		partitionID, credits := key.(uint16), value.(int32)
-		zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Msgf("partition %d = %d credits", partitionID, credits)
-		if float32(credits) <= float32(creditsSize)*zbcommon.TaskSubscriptionRefreshCreditsThreshold {
+
+		zbcommon.ZBL.Debug().
+			Str("component", "TaskSubscription").Str("method", "checkCredits").
+			Msgf("partition %d = %d credits", partitionID, credits)
+
+		if credits <= limit {
 			s, ok := ts.Subscriptions.Load(partitionID)
 			if ok {
 				sub := s.(*zbmsgpack.TaskSubscriptionInfo)
 				for i := 0; i < 3; i++ {
-					_, creditsErr := ts.svc.IncreaseTaskSubscriptionCredits(sub)
+					_, creditsErr := ts.svc.IncreaseTaskSubscriptionCredits(partitionID, sub)
 					if creditsErr != nil {
-						zbcommon.ZBL.Error().Msg("increasing credits failed on partition")
+						zbcommon.ZBL.Error().Str("component", "TaskSubscription").Str("method", "checkCredits").Msg("increasing credits failed on partition")
 						continue
 					}
 					break
@@ -135,15 +151,14 @@ func (ts *TaskSubscription) ProcessNext(n uint64) error {
 		return zbcommon.SubscriptionIsClosed
 	}
 
-	bsize := uint64(sub.Credits)
+	bsize := uint64(float32(sub.Credits)*zbcommon.TaskSubscriptionRefreshCreditsThreshold)
 	for {
 		toProcess = ts.EventsToProcess(bsize, n, processed)
 		p := ts.processNext(toProcess)
 		processed += p
 
-		ts.checkCredits(sub.Credits)
-		zbcommon.ZBL.Info().Msgf("processed %d tasks", processed)
 		if n <= processed || p < toProcess {
+			zbcommon.ZBL.Info().Str("component", "TaskSubscription").Str("method", "ProcessNext").Msgf("Stoping processor")
 			break
 		}
 	}

@@ -32,16 +32,21 @@ var (
 	ErrNoBrokersFound     = errors.New("broker not found")
 )
 
+var (
+	ErrCannotProcessZeroEvents = errors.New("cannot process zero events")
+)
+
 // RetryDeadlineReached is error which occurs when requestWrapper failed multiple times unsuccessfully.
 var RetryDeadlineReached = errors.New("message retry deadline reached")
 
 var (
-	// BrokerNotFound is used in transport manager to denote that broker cannot be contacted
-	BrokerNotFound             = errors.New("cannot contact the broker")
+	// ErrBrokerNotFound is used in transport manager to denote that broker cannot be contacted
+	ErrBrokerNotFound          = errors.New("cannot contact the broker")
 	ErrNoPartitionsFound       = errors.New("partitions not found")
 	ErrRoundRobinCtrlNotFound  = errors.New("round robin controller not initialized")
 	ErrDestinationAddrNotFound = errors.New("destination address could not be determined")
 	ErrClusterInfoNotFound     = errors.New("cluster not initialized")
+	ErrWrongIPFormat           = errors.New("wrong IP format for bootstrap address")
 )
 
 var ErrFailedToOpenTaskSubscription = errors.New("failed to open task subscription")

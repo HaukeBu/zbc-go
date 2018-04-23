@@ -30,7 +30,6 @@ func (rf *ResponseHandler) UnmarshalTopology(msg *Message) *zbmsgpack.ClusterTop
 
 	for _, broker := range resp.Brokers {
 		for _, partition := range broker.Partitions {
-
 			ct.PartitionIDByTopicName[partition.TopicName] = append(ct.PartitionIDByTopicName[partition.TopicName], partition.PartitionID)
 
 			if partition.State == zbcommon.StateLeader {

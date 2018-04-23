@@ -69,12 +69,8 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 	Assert(t, nil, zbClient, false)
 	t.Log("Client created")
 
-	t.Log("Creating topic")
-	hash := RandStringBytes(25)
-	topic, err := zbClient.CreateTopic(hash, 5)
-	Assert(t, nil, err, true)
-	Assert(t, nil, topic, false)
-	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+	NumberOfPartitions = 5
+	hash := CreateRandomTopicWithTimeout(t, zbClient)
 
 	t.Log("Creating workflow")
 	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")

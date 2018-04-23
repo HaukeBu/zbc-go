@@ -23,13 +23,8 @@ func TestTopicSubscriptionCloseOnError(t *testing.T) {
 	Assert(t, nil, zbClient, false)
 	t.Log("Client created")
 
-	partitionCount := 5
-	t.Log("Creating topic")
-	hash := RandStringBytes(25)
-	topic, err := zbClient.CreateTopic(hash, partitionCount)
-	Assert(t, nil, err, true)
-	Assert(t, nil, topic, false)
-	t.Logf("Topic %s created with %d partitions", hash, partitionCount)
+	NumberOfPartitions = 5
+	hash := CreateRandomTopicWithTimeout(t, zbClient)
 
 	t.Log("Creating workflow")
 	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")

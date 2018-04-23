@@ -22,7 +22,8 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 		return nil, zbcommon.ErrNoPartitionsFound
 	}
 
-	taskSubscription := NewTaskSubscription(uint64(len(*partitions)) * uint64(credits))
+	sz := uint64(len(*partitions)) * uint64(credits)
+	taskSubscription := NewTaskSubscription(sz*sz)
 	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("new task subscription created")
 
 	for partitionID := range *partitions {
@@ -52,18 +53,20 @@ func (ts *TaskSubscriptionSvc) TaskSubscription(topic, lockOwner, taskType strin
 		if taskSubscription != nil && err == nil {
 			break
 		}
-		ts.RefreshTopology()
+
+		zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "TaskSubscription").Msgf("failed to create task consumer: %+v", err)
+		ts.GetTopology()
 
 		if count < 3 {
 			count++
 			continue
 		} else {
-			zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "TaskSubscription").Msg("Failed to create TaskSubscription")
+			zbcommon.ZBL.Error().Str("component", "TaskSubscriptionSvc").Str("method", "TaskSubscription").Msg("failed to create task consumer after 3 tries. bailing")
 			return nil, err
 		}
 	}
 
-	zbcommon.ZBL.Debug().Msg("TaskSubscription created")
+	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Msgf("TaskSubscription created %s", taskType)
 	taskSubscription = taskSubscription.WithCallback(cb).WithTaskSubscriptionSvc(ts)
 	taskSubscription.initCredits(credits)
 
@@ -78,7 +81,7 @@ func (tp *TaskSubscriptionSvc) CloseTaskSubscription(sub *TaskSubscription) []er
 
 	sub.Subscriptions.Range(func(key, value interface{}) bool {
 		taskSub := value.(*zbmsgpack.TaskSubscriptionInfo)
-		_, err := tp.CloseTaskSubscriptionPartition(taskSub)
+		_, err := tp.CloseTaskSubscriptionPartition(key.(uint16), taskSub)
 		if err != nil {
 			errs = append(errs, err)
 		}

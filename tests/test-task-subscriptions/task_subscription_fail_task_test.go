@@ -22,12 +22,7 @@ func TestTaskSubscriptionFailTask(t *testing.T) {
 	Assert(t, nil, zbClient, false)
 	t.Log("Client created")
 
-	t.Log("Creating topic")
-	hash := RandStringBytes(25)
-	topic, err := zbClient.CreateTopic(hash, NumberOfPartitions)
-	Assert(t, nil, err, true)
-	Assert(t, nil, topic, false)
-	t.Logf("Topic %s created with %d partitions", hash, NumberOfPartitions)
+	hash := CreateRandomTopicWithTimeout(t, zbClient)
 
 	t.Log("Creating workflow")
 	workflow, err := zbClient.CreateWorkflowFromFile(hash, zbcommon.BpmnXml, "../../examples/demoProcess.bpmn")
@@ -55,7 +50,7 @@ func TestTaskSubscriptionFailTask(t *testing.T) {
 			atomic.AddUint64(&ops, 1)
 			_, err := zbClient.FailTask(event)
 			if err != nil {
-				fmt.Println("ERROR: Failed to FailTask")
+				fmt.Printf("ERROR: Failed to FailTask: %+v\n", err)
 				os.Exit(1)
 			}
 		})

@@ -9,9 +9,10 @@ import (
 
 // BrokerPartition contains information about partition contained in topology request.
 type BrokerPartition struct {
-	State       string `msgpack:"state"`
-	TopicName   string `msgpack:"topicName"`
-	PartitionID uint16 `msgpack:"partitionId"`
+	State             string `msgpack:"state"`
+	TopicName         string `msgpack:"topicName"`
+	PartitionID       uint16 `msgpack:"partitionId"`
+	ReplicationFactor uint16 `msgpack:"replicationFactor"`
 }
 
 // Broker is used to hold broker contact information.

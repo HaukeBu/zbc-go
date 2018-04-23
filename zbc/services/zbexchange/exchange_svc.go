@@ -73,14 +73,14 @@ func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.Workf
 	zbcommon.ZBL.Debug().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msg("creating workflow instance")
 	pid, err := rm.NextPartitionID(topic)
 	if err != nil {
+		zbcommon.ZBL.Error().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msgf("cannot find next partitionID: %+v\n", err)
 		return nil, err
 	}
-
-	PartitionID := *pid
-	message := rm.CreateWorkflowInstanceRequest(PartitionID, 0, topic, wfi)
+	message := rm.CreateWorkflowInstanceRequest(*pid, 0, topic, wfi)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {
+		zbcommon.ZBL.Error().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msgf("cannot execute request: %+v\n", err)
 		return nil, err
 	}
 	zbcommon.ZBL.Debug().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msg("workflow instance created")
@@ -154,12 +154,11 @@ func (rm *ExchangeSvc) OpenTopicPartition(
 	return nil
 }
 
-func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(task *zbmsgpack.TaskSubscriptionInfo) (*zbmsgpack.TaskSubscriptionInfo, error) {
+func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(partitionID uint16, task *zbmsgpack.TaskSubscriptionInfo) (*zbmsgpack.TaskSubscriptionInfo, error) {
 	zbcommon.ZBL.Debug().Msgf("increasing task credits :: %+v", task)
-	message := rm.IncreaseTaskSubscriptionCreditsRequest(task)
+	message := rm.IncreaseTaskSubscriptionCreditsRequest(partitionID, task)
 
 	request := zbsocket.NewRequestWrapper(message)
-
 	resp, err := rm.ExecuteRequest(request)
 	if err != nil {
 		zbcommon.ZBL.Debug().Msgf("credits refresh failed. What do we do?")
@@ -170,8 +169,8 @@ func (rm *ExchangeSvc) IncreaseTaskSubscriptionCredits(task *zbmsgpack.TaskSubsc
 	return rm.UnmarshalTaskSubscriptionInfo(resp), nil
 }
 
-func (rm *ExchangeSvc) CloseTaskSubscriptionPartition(task *zbmsgpack.TaskSubscriptionInfo) (*zbdispatch.Message, error) {
-	message := rm.CloseTaskSubscriptionRequest(task)
+func (rm *ExchangeSvc) CloseTaskSubscriptionPartition(partitionID uint16, task *zbmsgpack.TaskSubscriptionInfo) (*zbdispatch.Message, error) {
+	message := rm.CloseTaskSubscriptionRequest(partitionID, task)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 
@@ -207,13 +206,17 @@ func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int) (*zbmsgpack.Cr
 	return rm.UnmarshalTopic(resp), nil
 }
 
-func NewExchangeSvc(bootstrapAddr string) *ExchangeSvc {
-
+func NewExchangeSvc(bootstrapAddr string) (*ExchangeSvc, error) {
 	zbcommon.ZBL.Debug().Msg("creating new request manager")
 
+	topologySvc, err := zbtopology.NewTopologySvc(bootstrapAddr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ExchangeSvc{
-		LikeTopologySvc: zbtopology.NewTopologySvc(bootstrapAddr),
+		LikeTopologySvc: topologySvc,
 		RequestFactory:  zbdispatch.NewRequestFactory(),
 		ResponseHandler: zbdispatch.NewResponseHandler(),
-	}
+	}, nil
 }
