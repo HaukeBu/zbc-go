@@ -17,7 +17,7 @@ type LikeExchangeSvc interface {
 	CreateWorkflowInstance(topic string, workflowInstance *zbmsgpack.WorkflowInstance) (*zbmsgpack.WorkflowInstance, error)
 
 	OpenTopicPartition(ch chan *zbsubscriptions.SubscriptionEvent, partitionID uint16, topic, subscriptionName string, startPosition int64, forceStart bool, prefetchCapacity int32) *zbmsgpack.TopicSubscriptionInfo
-	OpenTaskPartition(ch chan *zbsubscriptions.SubscriptionEvent, partitionID uint16, lockOwner, taskType string, credits int32) *zbmsgpack.TaskSubscriptionInfo
+	OpenTaskPartition(ch chan *zbsubscriptions.SubscriptionEvent, partitionID uint16, lockOwner, taskType string, lockDuration uint64, credits int32) *zbmsgpack.TaskSubscriptionInfo
 
 	IncreaseTaskSubscriptionCredits(partitionID uint16, task *zbmsgpack.TaskSubscriptionInfo) (*zbmsgpack.TaskSubscriptionInfo, error)
 	TopicSubscriptionAck(subName string, s *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAckRequest, error)

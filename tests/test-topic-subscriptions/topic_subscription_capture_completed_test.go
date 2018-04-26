@@ -94,17 +94,17 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
 	t.Log("Create task subscription on type 'foo'")
-	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30, FooHandler)
+	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30, FooHandler)
 	Assert(t, nil, err, true)
 	Assert(t, nil, *fooSub, false)
 
 	t.Log("Create task subscription on type 'bar'")
-	barSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "bar", 30, BarHandler)
+	barSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "bar", 30000, 30, BarHandler)
 	Assert(t, nil, err, true)
 	Assert(t, nil, *barSub, false)
 
 	t.Log("Create task subscription on type 'foobar'")
-	foobarSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foobar", 30, FooBarHandler)
+	foobarSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foobar", 30000, 30, FooBarHandler)
 	Assert(t, nil, err, true)
 	Assert(t, nil, *foobarSub, false)
 

@@ -56,7 +56,7 @@ func TestTaskSubscriptionUnscopedCallback(t *testing.T) {
 	}
 	t.Logf("Workflow instances created in %v", time.Since(wfStart))
 
-	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30, TaskHandler)
+	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30, TaskHandler)
 
 	t.Log("Starting to consume subscription")
 	go subscription.Start()

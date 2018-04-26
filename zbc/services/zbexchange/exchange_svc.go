@@ -113,9 +113,10 @@ func (rm *ExchangeSvc) OpenTaskPartition(
 	partitionID uint16,
 	lockOwner,
 	taskType string,
+	lockDuration uint64,
 	credits int32) *zbmsgpack.TaskSubscriptionInfo {
 
-	message := rm.OpenTaskSubscriptionRequest(partitionID, lockOwner, taskType, credits)
+	message := rm.OpenTaskSubscriptionRequest(partitionID, lockOwner, taskType, lockDuration, credits)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 

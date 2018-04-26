@@ -72,7 +72,7 @@ func TestTaskSubscriptionPayloadMarshaller(t *testing.T) {
 
 	t.Log("Create task subscription on type 'foo'")
 	subStart := time.Now()
-	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30, FooHandler)
+	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30, FooHandler)
 	Assert(t, nil, err, true)
 	Assert(t, nil, *fooSub, false)
 	t.Logf("Subscription creation took %v", time.Since(subStart))

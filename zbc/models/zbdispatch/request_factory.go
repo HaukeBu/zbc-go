@@ -183,10 +183,10 @@ func (rf *RequestFactory) DeployWorkflowRequest(topic string, resources []*zbmsg
 	return rf.newCommandMessage(commandRequest, deployment)
 }
 
-func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionID uint16, lockOwner, taskType string, credits int32) *Message {
+func (rf *RequestFactory) OpenTaskSubscriptionRequest(partitionID uint16, lockOwner, taskType string, lockDuration uint64, credits int32) *Message {
 	taskSub := &zbmsgpack.TaskSubscriptionInfo{
 		Credits:       credits,
-		LockDuration:  300000,
+		LockDuration:  lockDuration,
 		LockOwner:     lockOwner,
 		SubscriberKey: 0,
 		TaskType:      taskType,

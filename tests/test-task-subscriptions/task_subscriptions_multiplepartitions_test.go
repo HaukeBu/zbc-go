@@ -49,7 +49,7 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 	mut := &sync.Mutex{}
 	var partitionIDs []uint16
 	var ops uint64
-	subscription, _ := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
+	subscription, _ := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
 

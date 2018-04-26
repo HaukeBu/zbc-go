@@ -6,7 +6,7 @@ import (
 
 // LikeTaskSubscriptionSvc defines behaviour of TaskSubscriptionSvc.
 type LikeTaskSubscriptionSvc interface {
-	TaskSubscription(topic, lockOwner, taskType string, credits int32, cb TaskSubscriptionCallback) (*TaskSubscription, error)
+	TaskSubscription(topic, lockOwner, taskType string, lockDuration uint64, credits int32, cb TaskSubscriptionCallback) (*TaskSubscription, error)
 	CloseTaskSubscription(task *TaskSubscription) []error
 }
 

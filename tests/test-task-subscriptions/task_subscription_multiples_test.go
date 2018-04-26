@@ -50,7 +50,7 @@ func TestTaskSubscriptionMultipleSubscriptions(t *testing.T) {
 	t.Logf("Instances created")
 
 	t.Log("Create task subscription on type 'foo'")
-	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
+	fooSub, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000,  30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			_, err := zbClient.CompleteTask(event)
 			if err != nil {
@@ -61,7 +61,7 @@ func TestTaskSubscriptionMultipleSubscriptions(t *testing.T) {
 	go fooSub.Start()
 
 	t.Log("Create task subscription on type 'bar'")
-	barSub, err := zbClient.TaskSubscription(hash, "task_subscription_task_b", "bar", 30,
+	barSub, err := zbClient.TaskSubscription(hash, "task_subscription_task_b", "bar", 30000, 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			_, err := zbClient.CompleteTask(event)
 			if err != nil {
@@ -72,7 +72,7 @@ func TestTaskSubscriptionMultipleSubscriptions(t *testing.T) {
 	go barSub.Start()
 
 	t.Log("Create task subscription on type 'foobar'")
-	foobarSub, err := zbClient.TaskSubscription(hash, "task_subscription_test_c", "foobar", 30,
+	foobarSub, err := zbClient.TaskSubscription(hash, "task_subscription_test_c", "foobar", 30000, 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			_, err := zbClient.CompleteTask(event)
 			if err != nil {

@@ -11,7 +11,7 @@ type TaskSubscriptionSvc struct {
 	zbexchange.LikeExchangeSvc
 }
 
-func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, credits int32) (*TaskSubscription, error) {
+func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, lockDuration uint64, credits int32) (*TaskSubscription, error) {
 	partitions, err := ts.TopicPartitionsAddrs(topic)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("new task subscription created")
 
 	for partitionID := range *partitions {
-		sub := ts.OpenTaskPartition(taskSubscription.OutCh, partitionID, lockOwner, taskType, credits)
+		sub := ts.OpenTaskPartition(taskSubscription.OutCh, partitionID, lockOwner, taskType, lockDuration, credits)
 
 		if sub != nil {
 			taskSubscription.AddSubscription(partitionID, sub)
@@ -43,13 +43,13 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, c
 }
 
 // TaskSubscription will open a test-task-subscriptions subscription with specified handler/callback function.
-func (ts *TaskSubscriptionSvc) TaskSubscription(topic, lockOwner, taskType string, credits int32, cb TaskSubscriptionCallback) (*TaskSubscription, error) {
+func (ts *TaskSubscriptionSvc) TaskSubscription(topic, lockOwner, taskType string, lockDuration uint64, credits int32, cb TaskSubscriptionCallback) (*TaskSubscription, error) {
 	var err error
 	var taskSubscription *TaskSubscription
 	var count int = 0
 
 	for {
-		taskSubscription, err = ts.taskConsumer(topic, lockOwner, taskType, credits)
+		taskSubscription, err = ts.taskConsumer(topic, lockOwner, taskType, lockDuration, credits)
 		if taskSubscription != nil && err == nil {
 			break
 		}

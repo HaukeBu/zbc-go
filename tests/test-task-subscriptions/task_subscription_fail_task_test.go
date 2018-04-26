@@ -45,7 +45,7 @@ func TestTaskSubscriptionFailTask(t *testing.T) {
 	t.Log("Create task subscription")
 	var ops uint64
 	subStart := time.Now()
-	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
+	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			atomic.AddUint64(&ops, 1)
 			_, err := zbClient.FailTask(event)

@@ -51,7 +51,7 @@ func TestTaskSubscriptionIncreaseCredits(t *testing.T) {
 	// Otherwise go test runtime will teardown the test after 10 minutes
 	var ops uint64
 	subStart := time.Now()
-	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30,
+	subscription, err := zbClient.TaskSubscription(hash, "task_subscription_test", "foo", 30000, 30,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) {
 			Assert(t, nil, *event, false)
 			Assert(t, nil, client, false)
