@@ -11,3 +11,9 @@ mem.prof
 trace.out
 .coverage
 .DS_Store
+*.prof
+*.out
+.profiles/
+.traces/
+.coverage/
+.logs/
