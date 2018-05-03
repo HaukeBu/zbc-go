@@ -189,7 +189,7 @@ func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdis
 
 	zbcommon.ZBL.Debug().Str("component", "TopologySvc").Msg("waiting for response")
 	select {
-	case <-time.After(time.Duration(zbcommon.RequestTimeout*time.Second)):
+	case <-time.After(time.Duration(zbcommon.RequestTimeout * time.Second)):
 		return nil, zbcommon.ErrTimeout
 
 	case resp := <-request.ResponseCh:

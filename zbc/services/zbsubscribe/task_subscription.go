@@ -83,8 +83,8 @@ func (ts *TaskSubscription) processNext(n uint64) uint64 {
 				return i
 			}
 
-			ts.consumeCredit(msg.Event.PartitionId)
-			zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("credits consumed on partition %d", msg.Event.PartitionId)
+			ts.consumeCredit(msg.Metadata.PartitionId)
+			zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("credits consumed on partition %d", msg.Metadata.PartitionId)
 			ts.ExecuteCallback(msg)
 			zbcommon.ZBL.Debug().Str("component", "TaskSubscription").Str("method", "processNext").Msgf("callback executed for iteration %d/%d", i+1, n)
 		}
@@ -148,10 +148,10 @@ func (ts *TaskSubscription) ProcessNext(n uint64) error {
 	var toProcess, processed uint64 = 0, 0
 	sub, ok := ts.GetSubscription(ts.Partitions[0])
 	if !ok {
-		return zbcommon.SubscriptionIsClosed
+		return zbcommon.ErrSubscriptionIsClosed
 	}
 
-	bsize := uint64(float32(sub.Credits)*zbcommon.TaskSubscriptionRefreshCreditsThreshold)
+	bsize := uint64(float32(sub.Credits) * zbcommon.TaskSubscriptionRefreshCreditsThreshold)
 	for {
 		toProcess = ts.EventsToProcess(bsize, n, processed)
 		p := ts.processNext(toProcess)

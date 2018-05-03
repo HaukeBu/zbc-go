@@ -1,8 +1,8 @@
 package test_helpers
 
 import (
-	"testing"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"testing"
 )
 
 func TestRandStringBytes(t *testing.T) {

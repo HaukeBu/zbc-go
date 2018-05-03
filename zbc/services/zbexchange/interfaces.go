@@ -12,9 +12,9 @@ type LikeExchangeSvc interface {
 
 	CreateTopic(name string, partitionNum int) (*zbmsgpack.CreateTopic, error)
 	CreateTask(topic string, task *zbmsgpack.Task) (*zbmsgpack.Task, error)
-	CreateWorkflow(topic string, resources ...*zbmsgpack.Resource) (*zbmsgpack.Workflow, error)
-	CreateWorkflowFromFile(topic, resourceType, path string) (*zbmsgpack.Workflow, error)
-	CreateWorkflowInstance(topic string, workflowInstance *zbmsgpack.WorkflowInstance) (*zbmsgpack.WorkflowInstance, error)
+	CreateWorkflow(topic string, resources ...*zbmsgpack.Resource) (*zbmsgpack.DeployWorkflow, error)
+	CreateWorkflowFromFile(topic, resourceType, path string) (*zbmsgpack.DeployWorkflow, error)
+	CreateWorkflowInstance(topic string, workflowInstance *zbmsgpack.CreateWorkflowInstance) (*zbmsgpack.CreateWorkflowInstance, error)
 
 	OpenTopicPartition(ch chan *zbsubscriptions.SubscriptionEvent, partitionID uint16, topic, subscriptionName string, startPosition int64, forceStart bool, prefetchCapacity int32) *zbmsgpack.TopicSubscriptionInfo
 	OpenTaskPartition(ch chan *zbsubscriptions.SubscriptionEvent, partitionID uint16, lockOwner, taskType string, lockDuration uint64, credits int32) *zbmsgpack.TaskSubscriptionInfo
@@ -27,4 +27,6 @@ type LikeExchangeSvc interface {
 
 	CompleteTask(task *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.Task, error)
 	FailTask(task *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.Task, error)
+
+	UpdatePayload(event *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.CreateWorkflowInstance, error)
 }

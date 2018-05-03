@@ -33,7 +33,7 @@ func FooHandler(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.Subscription
 	Assert(marshallTester, 11, receiverUserType.ID, true)
 	Assert(marshallTester, "", receiverUserType.Name, true)
 
-	event.UpdateTask(&receiverUserType)
+	event.UpdatePayload(&receiverUserType)
 
 	//task, err := client.CompleteTask(event)
 	//Assert(marshallTester, nil, task, false)

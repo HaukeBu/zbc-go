@@ -52,9 +52,13 @@ func (ts *TopicSubscriptionSvc) topicConsumer(topic, subName string, startPositi
 	return topicSubscription, nil
 }
 
-func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetchCapacity int32, startPosition int64, forceStart bool, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
+func (ts *TopicSubscriptionSvc) TopicSubscription(topic, subName string, prefetchCapacity uint32, startPosition int64, forceStart bool, cb TopicSubscriptionCallback) (*TopicSubscription, error) {
+	if prefetchCapacity == 0 {
+		return nil, zbcommon.ErrZeroCapacity
+	}
+
 	zbcommon.ZBL.Debug().Msg("Opening topic subscription")
-	topicConsumer, err := ts.topicConsumer(topic, subName, startPosition, forceStart, prefetchCapacity)
+	topicConsumer, err := ts.topicConsumer(topic, subName, startPosition, forceStart, int32(prefetchCapacity))
 	zbcommon.ZBL.Debug().Msg("CreateTopic subscription opened.")
 
 	if err != nil {

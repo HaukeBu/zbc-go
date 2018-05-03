@@ -51,17 +51,18 @@ func NewTask(typeName string) *zbmsgpack.Task {
 
 		Type:    typeName,
 		Retries: 3,
+		Payload: make([]uint8, 0, 1),
 	}
 }
 
 // NewWorkflowInstance will create new workflow instance.
-func NewWorkflowInstance(bpmnProcessID string, version int, payload interface{}) *zbmsgpack.WorkflowInstance {
+func NewWorkflowInstance(bpmnProcessID string, version int, payload interface{}) *zbmsgpack.CreateWorkflowInstance {
 	b, err := msgpack.Marshal(payload)
 	if err != nil {
 		return nil
 	}
 
-	return &zbmsgpack.WorkflowInstance{
+	return &zbmsgpack.CreateWorkflowInstance{
 		State:         zbcommon.CreateWorkflowInstance,
 		BPMNProcessID: bpmnProcessID,
 		Version:       version,

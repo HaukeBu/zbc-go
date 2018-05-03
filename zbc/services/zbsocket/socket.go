@@ -76,6 +76,7 @@ func (s *socket) receiver() {
 				event := message.SbeMessage.(*zbsbe.SubscribedEvent)
 				partitionID := message.SbeMessage.(*zbsbe.SubscribedEvent).PartitionId
 				zbcommon.ZBL.Debug().Str("component", "socket").Msgf("subscriptions event from partitionID %d, subscriptions type %d", partitionID, event.SubscriptionType)
+
 				switch event.SubscriptionType {
 				case zbsbe.SubscriptionType.TASK_SUBSCRIPTION:
 					task := responseHandler.UnmarshalTask(message)

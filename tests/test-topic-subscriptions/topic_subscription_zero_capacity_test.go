@@ -9,9 +9,6 @@ import (
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 
-	"sync/atomic"
-	"time"
-
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
@@ -36,44 +33,16 @@ func TestTopicSubscriptionZeroCapacity(t *testing.T) {
 	payload := make(map[string]interface{})
 	payload["a"] = "b"
 
-	var i, wiCount uint64 = 0, 5000
 	instance := zbc.NewWorkflowInstance("demoProcess", -1, payload)
-
-	wfStart := time.Now()
-	t.Log("Creating 5000 workflow instances")
-	for ; i < wiCount; i++ {
-		createdInstance, err := zbClient.CreateWorkflowInstance(hash, instance)
-		Assert(t, nil, err, true)
-		Assert(t, nil, createdInstance, false)
-		Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
-	}
-	t.Logf("Workflow instances created in %v", time.Since(wfStart))
-
-	var ops uint64
-
-	now := time.Now()
-	subscription, err := zbClient.TopicSubscription(hash, "callback-test", 0, 0, false,
-		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
-			Assert(t, nil, event, false)
-			Assert(t, nil, client, false)
-			atomic.AddUint64(&ops, 1)
-			return nil
-		})
-	Assert(t, nil, subscription, false)
+	createdInstance, err := zbClient.CreateWorkflowInstance(hash, instance)
 	Assert(t, nil, err, true)
+	Assert(t, nil, createdInstance, false)
+	Assert(t, zbcommon.WorkflowInstanceCreated, createdInstance.State, true)
 
-	go subscription.Start()
+	subscription, err := zbClient.TopicSubscription(hash, "callback-test", 0, 0, false,
+		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error { return nil })
 
-	for {
-		op := atomic.LoadUint64(&ops)
-		t.Log("Subscription processed events ", op)
-		if op == (wiCount*8)+(2*uint64(NumberOfPartitions)) {
-			errs := subscription.Close()
-			Assert(t, 0, len(errs), true)
-			break
-		}
+	Assert(t, nil, subscription, false)
+	Assert(t, zbcommon.ErrZeroCapacity, err, true)
 
-		time.Sleep(time.Duration(time.Millisecond * 900))
-	}
-	t.Logf("executed in %v", time.Since(now))
 }

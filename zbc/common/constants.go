@@ -54,6 +54,8 @@ const (
 	CreateWorkflowInstance   = "CREATE_WORKFLOW_INSTANCE"
 	WorkflowInstanceCreated  = "WORKFLOW_INSTANCE_CREATED"
 	WorkflowInstanceRejected = "WORKFLOW_INSTANCE_REJECTED"
+
+	UpdatePayload = "UPDATE_PAYLOAD"
 )
 
 //

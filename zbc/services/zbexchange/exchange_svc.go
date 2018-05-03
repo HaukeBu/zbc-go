@@ -39,7 +39,7 @@ func (rm *ExchangeSvc) CreateTask(topic string, task *zbmsgpack.Task) (*zbmsgpac
 	return rm.UnmarshalTask(resp), nil
 }
 
-func (rm *ExchangeSvc) CreateWorkflow(topic string, resource ...*zbmsgpack.Resource) (*zbmsgpack.Workflow, error) {
+func (rm *ExchangeSvc) CreateWorkflow(topic string, resource ...*zbmsgpack.Resource) (*zbmsgpack.DeployWorkflow, error) {
 	message := rm.DeployWorkflowRequest(topic, resource)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
@@ -50,7 +50,7 @@ func (rm *ExchangeSvc) CreateWorkflow(topic string, resource ...*zbmsgpack.Resou
 }
 
 // CreateWorkflowFromFile will read workflow file and return message pack workflow object.
-func (rm *ExchangeSvc) CreateWorkflowFromFile(topic, resourceType, path string) (*zbmsgpack.Workflow, error) {
+func (rm *ExchangeSvc) CreateWorkflowFromFile(topic, resourceType, path string) (*zbmsgpack.DeployWorkflow, error) {
 	if len(path) == 0 {
 		return nil, zbcommon.ErrResourceNotFound
 	}
@@ -69,7 +69,7 @@ func (rm *ExchangeSvc) CreateWorkflowFromFile(topic, resourceType, path string) 
 	return rm.CreateWorkflow(topic, resource)
 }
 
-func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.WorkflowInstance) (*zbmsgpack.WorkflowInstance, error) {
+func (rm *ExchangeSvc) CreateWorkflowInstance(topic string, wfi *zbmsgpack.CreateWorkflowInstance) (*zbmsgpack.CreateWorkflowInstance, error) {
 	zbcommon.ZBL.Debug().Str("component", "ExchangeSvc").Str("method", "CreateWorkflowInstance").Msg("creating workflow instance")
 	pid, err := rm.NextPartitionID(topic)
 	if err != nil {
@@ -189,7 +189,7 @@ func (rm *ExchangeSvc) CloseTopicSubscriptionPartition(topicPartition *zbmsgpack
 }
 
 func (rm *ExchangeSvc) TopicSubscriptionAck(subName string, s *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.TopicSubscriptionAckRequest, error) {
-	message := rm.TopicSubscriptionAckRequest(subName, s.Event.Position, s.Event.PartitionId)
+	message := rm.TopicSubscriptionAckRequest(subName, s.Metadata.Position, s.Metadata.PartitionId)
 	request := zbsocket.NewRequestWrapper(message)
 	resp, err := rm.ExecuteRequest(request)
 	return rm.UnmarshalTopicSubAck(resp), err
@@ -205,6 +205,16 @@ func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int) (*zbmsgpack.Cr
 		return nil, err
 	}
 	return rm.UnmarshalTopic(resp), nil
+}
+
+func (rm *ExchangeSvc) UpdatePayload(event *zbsubscriptions.SubscriptionEvent) (*zbmsgpack.CreateWorkflowInstance, error) {
+	message := rm.UpdatePayloadRequest(event)
+	request := zbsocket.NewRequestWrapper(message)
+	resp, err := rm.ExecuteRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	return rm.UnmarshalWorkflowInstance(resp), nil
 }
 
 func NewExchangeSvc(bootstrapAddr string) (*ExchangeSvc, error) {

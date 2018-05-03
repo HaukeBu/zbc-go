@@ -113,18 +113,17 @@ func TestTopicSubscriptionCaptureCompleted(t *testing.T) {
 	go fooSub.Start()
 
 	var ops uint64
-	subscription, err := zbClient.TopicSubscription(hash, "default-name", 0, 0, false,
+	subscription, err := zbClient.TopicSubscription(hash, "default-name", 50000, 0, false,
 		func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
 			Assert(t, nil, event, false)
 			Assert(t, nil, client, false)
 
-			eventPayload, err := event.GetEvent()
-			if eventPayload["state"] == "WORKFLOW_INSTANCE_COMPLETED" {
-				atomic.AddUint64(&ops, 1)
+			wfi, err := event.GetWorkflowInstanceEvent()
+			if err == nil {
+				if wfi.State == "WORKFLOW_INSTANCE_COMPLETED" {
+					atomic.AddUint64(&ops, 1)
+				}
 			}
-
-			Assert(t, nil, err, true)
-			Assert(t, nil, eventPayload, false)
 
 			return nil
 		})

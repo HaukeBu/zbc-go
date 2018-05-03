@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"github.com/zeebe-io/zbc-go/zbc/models/zbsbe"
 	"github.com/zeebe-io/zbc-go/zbc/models/zbsubscriptions"
 )
 
@@ -18,6 +19,11 @@ type TopicSubscription struct {
 	svc *TopicSubscriptionSvc
 
 	lastSuccessful map[uint16]*zbsubscriptions.SubscriptionEvent
+	filter         *zbsbe.EventTypeEnum
+}
+
+func (ts *TopicSubscription) SetFilter(filter zbsbe.EventTypeEnum) {
+	ts.filter = &filter
 }
 
 func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.SubscriptionEvent, uint64, error) {
@@ -37,19 +43,33 @@ func (ts *TopicSubscription) processNext(n uint64) (*zbsubscriptions.Subscriptio
 
 			errCount = 0
 			for ; errCount < 3; errCount++ {
-				err := ts.ExecuteCallback(msg)
-				if err != nil && errCount == 2 {
-					return nil, i, err
+				if ts.filter != nil {
+					if msg.Metadata.EventType == *ts.filter {
+						err := ts.ExecuteCallback(msg)
+						if err != nil && errCount == 2 {
+							return nil, i, err
+						}
+
+						if err == nil {
+							break
+						}
+					}
+				} else {
+					err := ts.ExecuteCallback(msg)
+					if err != nil && errCount == 2 {
+						return nil, i, err
+					}
+
+					if err == nil {
+						break
+					}
 				}
 
-				if err == nil {
-					break
-				}
 			}
 			lastProcessed = msg
 
 			ts.Lock()
-			ts.lastSuccessful[lastProcessed.Event.PartitionId] = lastProcessed
+			ts.lastSuccessful[lastProcessed.Metadata.PartitionId] = lastProcessed
 			ts.Unlock()
 		}
 	}
@@ -91,7 +111,7 @@ func (ts *TopicSubscription) ProcessNext(n uint64) (bool, error) {
 
 		for partitionID, lastSuccessful := range ts.lastSuccessful {
 			zbcommon.ZBL.Info().Str("component", "TopicSubscription").Msgf("acknowledging events for partition %d", partitionID)
-			_, err = ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Event.PartitionId].SubscriptionName, lastSuccessful)
+			_, err = ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Metadata.PartitionId].SubscriptionName, lastSuccessful)
 			if err != nil {
 				return false, err
 			}
@@ -123,7 +143,7 @@ func (ts *TopicSubscription) Close() []error {
 	ts.Lock()
 	for partitionID, lastSuccessful := range ts.lastSuccessful {
 		zbcommon.ZBL.Debug().Str("component", "TopicSubscription").Msgf("acking last successful event %v for partitionID %d\n", lastSuccessful.String(), partitionID)
-		_, err := ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Event.PartitionId].SubscriptionName, lastSuccessful)
+		_, err := ts.svc.TopicSubscriptionAck(ts.CloseRequests[lastSuccessful.Metadata.PartitionId].SubscriptionName, lastSuccessful)
 		if err != nil {
 			errors = append(errors, err)
 		}

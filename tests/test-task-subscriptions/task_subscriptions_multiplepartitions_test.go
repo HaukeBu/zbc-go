@@ -55,7 +55,7 @@ func TestTaskSubscriptionMultiplePartitions(t *testing.T) {
 
 			// MARK: User is responsible for this kind of behaviour.
 			mut.Lock()
-			partitionIDs = append(partitionIDs, event.Event.PartitionId)
+			partitionIDs = append(partitionIDs, event.Metadata.PartitionId)
 			mut.Unlock()
 
 		})

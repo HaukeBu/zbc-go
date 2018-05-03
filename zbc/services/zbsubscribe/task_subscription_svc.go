@@ -23,7 +23,7 @@ func (ts *TaskSubscriptionSvc) taskConsumer(topic, lockOwner, taskType string, l
 	}
 
 	sz := uint64(len(*partitions)) * uint64(credits)
-	taskSubscription := NewTaskSubscription(sz*sz)
+	taskSubscription := NewTaskSubscription(sz * sz)
 	zbcommon.ZBL.Debug().Str("component", "TaskSubscriptionSvc").Str("method", "taskConsumer").Msg("new task subscription created")
 
 	for partitionID := range *partitions {

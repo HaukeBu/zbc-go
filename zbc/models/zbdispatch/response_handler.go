@@ -79,8 +79,8 @@ func (rf *ResponseHandler) UnmarshalTopicSubscriptionInfo(m *Message) *zbmsgpack
 	return &d
 }
 
-func (rf *ResponseHandler) UnmarshalWorkflow(m *Message) *zbmsgpack.Workflow {
-	var d zbmsgpack.Workflow
+func (rf *ResponseHandler) UnmarshalWorkflow(m *Message) *zbmsgpack.DeployWorkflow {
+	var d zbmsgpack.DeployWorkflow
 	err := msgpack.Unmarshal(m.Data, &d)
 	if err != nil {
 		return nil
@@ -91,8 +91,8 @@ func (rf *ResponseHandler) UnmarshalWorkflow(m *Message) *zbmsgpack.Workflow {
 	return nil
 }
 
-func (rf *ResponseHandler) UnmarshalWorkflowInstance(m *Message) *zbmsgpack.WorkflowInstance {
-	var d zbmsgpack.WorkflowInstance
+func (rf *ResponseHandler) UnmarshalWorkflowInstance(m *Message) *zbmsgpack.CreateWorkflowInstance {
+	var d zbmsgpack.CreateWorkflowInstance
 	err := msgpack.Unmarshal(m.Data, &d)
 	if err != nil {
 		return nil

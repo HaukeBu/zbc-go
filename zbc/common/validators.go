@@ -1,8 +1,8 @@
 package zbcommon
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 func IsIPv4(hostport string) bool {
@@ -10,7 +10,7 @@ func IsIPv4(hostport string) bool {
 	if len(hostPort) != 2 {
 		return false
 	}
-	host:= hostPort[0]
+	host := hostPort[0]
 	port, err := strconv.Atoi(hostPort[1])
 	if err != nil {
 		return false
@@ -24,7 +24,7 @@ func IsIPv4(hostport string) bool {
 		return false
 	}
 
-	for _,x := range parts {
+	for _, x := range parts {
 		if i, err := strconv.Atoi(x); err == nil {
 			if i < 0 || i > 255 {
 				return false

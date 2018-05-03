@@ -33,13 +33,11 @@ func (sd *safeTaskSubscriptionDispatcher) GetTaskChannel(key uint64) chan *zbsub
 	return nil
 }
 
-func (sd *safeTaskSubscriptionDispatcher) DispatchTaskEvent(key uint64, message *zbsbe.SubscribedEvent, task *zbmsgpack.Task) error {
+func (sd *safeTaskSubscriptionDispatcher) DispatchTaskEvent(key uint64, metadata *zbsbe.SubscribedEvent, task *zbmsgpack.Task) error {
 	for i := 0; i < 3; i++ {
 		if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
 			c := ch.(chan *zbsubscriptions.SubscriptionEvent)
-			task := &zbsubscriptions.SubscriptionEvent{
-				Task: task, Event: message,
-			}
+			task := zbsubscriptions.NewSubscriptionEvent(task, metadata)
 			zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatching task event")
 			c <- task
 			zbcommon.ZBL.Debug().Str("component", "safeTaskSubscriptionDispatcher").Str("len(ch)", strconv.Itoa(len(c))).Msgf("Dispatched")
@@ -73,12 +71,16 @@ func (sd *safeTopicSubscriptionDispatcher) GetTopicChannel(key uint64) chan *zbs
 	return nil
 }
 
-func (sd *safeTopicSubscriptionDispatcher) DispatchTopicEvent(key uint64, message *zbsbe.SubscribedEvent) error {
+func (sd *safeTopicSubscriptionDispatcher) DispatchTopicEvent(key uint64, metadata *zbsbe.SubscribedEvent) error {
 	for i := 0; i < 3; i++ {
 		if ch, ok := sd.subscriptions.Load(key); ch != nil && ok {
-			event := &zbsubscriptions.SubscriptionEvent{
-				Event: message,
+
+			event := zbsubscriptions.NewSubscriptionEvent(nil, metadata)
+			evt, err := event.GetEvent()
+			if err != nil {
+				return err
 			}
+			event.Event = evt
 
 			topicChannel := ch.(chan *zbsubscriptions.SubscriptionEvent)
 
@@ -88,9 +90,7 @@ func (sd *safeTopicSubscriptionDispatcher) DispatchTopicEvent(key uint64, messag
 				zbcommon.ZBL.Debug().Msgf("topic event dispatched")
 				break
 			default:
-				panic("Channel full. Discarding value")
-				//zbcommon.ZBL.Debug().Msgf("Channel full. Discarding value")
-
+				zbcommon.ZBL.Error().Msgf("Channel full. Discarding value")
 				break
 			}
 

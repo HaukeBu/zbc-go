@@ -78,5 +78,11 @@ var (
 )
 
 var (
-	SubscriptionIsClosed = errors.New("subscription is closed")
+	ErrSubscriptionIsClosed = errors.New("subscription is closed")
+	ErrZeroCapacity         = errors.New("capacity cannot be zero")
+)
+
+var (
+	ErrNoPayloadOnWorkflowEvent = errors.New("cannot update payload on workflow event")
+	ErrWrongTypeAssertion = errors.New("event is not of request type")
 )

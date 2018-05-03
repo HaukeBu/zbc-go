@@ -7,15 +7,16 @@ import (
 
 // Task structure is used when creating or read a test-task-subscriptions.
 type Task struct {
-	State        string                 `yaml:"state" msgpack:"state"`
-	LockTime     uint64                 `yaml:"lockTime" msgpack:"lockTime"`
-	LockOwner    string                 `yaml:"lockOwner" msgpack:"lockOwner"`
-	Headers      map[string]interface{} `yaml:"headers" msgpack:"headers"`
-	CustomHeader map[string]interface{} `yaml:"customHeaders" msgpack:"customHeaders"`
-	Retries      int                    `yaml:"retries" msgpack:"retries"`
-	Type         string                 `yaml:"type" msgpack:"type"`
-	Payload      []uint8                `yaml:"-" msgpack:"payload"`
-	PayloadJSON  map[string]interface{} `yaml:"payload" msgpack:"-" json:"-"`
+	State        string                 `msgpack:"state"`
+	LockTime     uint64                 `msgpack:"lockTime"`
+	LockOwner    string                 `msgpack:"lockOwner"`
+	Headers      map[string]interface{} `msgpack:"headers"`
+	CustomHeader map[string]interface{} `msgpack:"customHeaders"`
+	Retries      int                    `msgpack:"retries"`
+	Type         string                 `msgpack:"type"`
+
+	Payload      []uint8                `msgpack:"payload"`
+	//PayloadJSON  map[string]interface{} `yaml:"payload" msgpack:"-" json:"-"`
 }
 
 func (t *Task) String() string {

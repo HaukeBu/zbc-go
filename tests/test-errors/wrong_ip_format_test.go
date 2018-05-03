@@ -1,10 +1,10 @@
 package test_errors
 
 import (
-	"testing"
-	"github.com/zeebe-io/zbc-go/zbc"
 	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
+	"github.com/zeebe-io/zbc-go/zbc"
 	"github.com/zeebe-io/zbc-go/zbc/common"
+	"testing"
 )
 
 func TestWrongIPFormat(t *testing.T) {

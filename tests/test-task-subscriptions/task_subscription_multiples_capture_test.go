@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	"fmt"
+	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 	"github.com/zeebe-io/zbc-go/zbc"
 	"github.com/zeebe-io/zbc-go/zbc/common"
 	"sync/atomic"
 	"time"
-	. "github.com/zeebe-io/zbc-go/tests/test-helpers"
 )
 
 func TestTaskSubscriptionMultiplesCaptureEndEvent(t *testing.T) {
@@ -81,10 +81,9 @@ func TestTaskSubscriptionMultiplesCaptureEndEvent(t *testing.T) {
 	go foobarSub.Start()
 
 	var counter uint64
-	sub, _ := zbClient.TopicSubscription(hash, "topicsub", 0, 0, false, func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
-		metadata, _ := event.GetEvent()
-		state := metadata["state"]
-		if state == "WORKFLOW_INSTANCE_COMPLETED" {
+	sub, _ := zbClient.TopicSubscription(hash, "topicsub", 10, 0, false, func(client zbsubscribe.ZeebeAPI, event *zbsubscriptions.SubscriptionEvent) error {
+		metadata, err := event.GetWorkflowInstanceEvent()
+		if err == nil && metadata.State == "WORKFLOW_INSTANCE_COMPLETED" {
 			atomic.AddUint64(&counter, 1)
 		}
 		return nil
