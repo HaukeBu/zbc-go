@@ -18,7 +18,7 @@ func TestCreateTopic(t *testing.T) {
 	Assert(t, nil, err, true)
 	Assert(t, nil, topic, false)
 
-	Assert(t, zbcommon.TopicCreated, topic.State, true)
+	Assert(t, zbcommon.TopicCreating, topic.State, true)
 
 	topic, _ = zbClient.CreateTopic("default-topic", NumberOfPartitions)
 	Assert(t, nil, topic, false)

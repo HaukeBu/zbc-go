@@ -61,6 +61,7 @@ const (
 //
 const (
 	TopicCreate   = "CREATE"
+	TopicCreating = "CREATING"
 	TopicCreated  = "CREATED"
 	TopicRejected = "CREATE_REJECTED"
 )
