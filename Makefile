@@ -51,6 +51,8 @@ test:
 	make test-msgpack
 	make test-hexdump
 
-
 clean:
-	@rm -rf .profiles .coverage .traces .logs
+	@rm -rf .profiles .coverage .traces .logs *.test
+
+lib:
+	go build -o ffi/obj/zbc.so.dylib -buildmode=c-shared ffi/main.go
