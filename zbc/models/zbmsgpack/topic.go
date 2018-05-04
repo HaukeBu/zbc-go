@@ -9,6 +9,7 @@ type CreateTopic struct {
 	Name       string `msgpack:"name"`
 	State      string `msgpack:"state"`
 	Partitions int    `msgpack:"partitions"`
+	ReplicationFactor int `msgpack:"replicationFactor"`
 }
 
 func (t *CreateTopic) String() string {
@@ -19,10 +20,11 @@ func (t *CreateTopic) String() string {
 	return fmt.Sprintf("%+v", string(b))
 }
 
-func NewTopic(name, state string, partitionsNum int) *CreateTopic {
+func NewTopic(name, state string, partitionsNum, replicationFactor int) *CreateTopic {
 	return &CreateTopic{
-		name,
-		state,
-		partitionsNum,
+		Name: name,
+		State: state,
+		Partitions: partitionsNum,
+		ReplicationFactor: replicationFactor,
 	}
 }

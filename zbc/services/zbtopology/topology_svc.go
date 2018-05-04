@@ -81,7 +81,6 @@ func (svc *TopologySvc) NextPartitionID(topic string) (*uint16, error) {
 func (svc *TopologySvc) getPartitions() (*zbmsgpack.PartitionCollection, error) {
 	message := svc.CreatePartitionRequest()
 	request := zbsocket.NewRequestWrapper(message)
-
 	resp, err := svc.ExecuteRequest(request)
 	if err != nil {
 		return nil, err
@@ -93,6 +92,7 @@ func (svc *TopologySvc) getPartitions() (*zbmsgpack.PartitionCollection, error) 
 
 func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 	request := zbsocket.NewRequestWrapper(svc.TopologyRequest())
+
 	if svc.Cluster == nil || len(svc.Cluster.Brokers) == 0 {
 		request.Addr = svc.bootstrapAddr
 	} else {
@@ -106,6 +106,7 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 	}
 
 	topology := svc.UnmarshalTopology(resp)
+
 	svc.Lock()
 	// MARK: the following partition request already needs the topology
 	svc.Cluster = topology
@@ -127,6 +128,7 @@ func (svc *TopologySvc) getTopology() (*zbmsgpack.ClusterTopology, error) {
 }
 
 func (svc *TopologySvc) GetTopology() (*zbmsgpack.ClusterTopology, error) {
+
 	zbcommon.ZBL.Debug().
 		Str("component", "TopologySvc").
 		Str("method", "GetTopology").
@@ -218,16 +220,32 @@ func (svc *TopologySvc) ExecuteRequest(request *zbsocket.RequestWrapper) (*zbdis
 	}
 }
 
+func (svc *TopologySvc) refreshClusterInfo() error {
+	if svc.Cluster == nil {
+		count := 0
+		for {
+			_, err := svc.GetTopology()
+			if err == nil {
+				break
+			}
+			count++
+			if count > 10 {
+				return zbcommon.ErrClusterInfoNotFound
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+	return nil
+}
+
 func (svc *TopologySvc) findDestinationAddress(msg *zbdispatch.Message) (*string, error) {
 	svc.Lock()
 	defer svc.Unlock()
 
-	if svc.Cluster == nil && !msg.IsTopologyMessage() {
-		svc.GetTopology()
-		if svc.Cluster == nil {
-			return nil, zbcommon.ErrClusterInfoNotFound
-		}
+	if err := svc.refreshClusterInfo(); err != nil {
+		return nil, err
 	}
+
 
 	if msg.IsTopologyMessage() && svc.Cluster == nil {
 		return &svc.bootstrapAddr, nil
@@ -235,9 +253,15 @@ func (svc *TopologySvc) findDestinationAddress(msg *zbdispatch.Message) (*string
 
 	partitionID := msg.ForPartitionId()
 	if partitionID != nil {
-		if addr, ok := svc.Cluster.AddrByPartitionID[*partitionID]; ok {
-			zbcommon.ZBL.Debug().Msgf("searching for %+v in %+v", *partitionID, svc.Cluster.AddrByPartitionID)
-			return &addr, nil
+		for {
+			if addr, ok := svc.Cluster.AddrByPartitionID[*partitionID]; ok {
+				zbcommon.ZBL.Debug().Msgf("searching for %+v in %+v", *partitionID, svc.Cluster.AddrByPartitionID)
+				return &addr, nil
+			} else {
+				if err := svc.refreshClusterInfo(); err != nil {
+					break
+				}
+			}
 		}
 	}
 

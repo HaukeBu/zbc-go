@@ -195,8 +195,11 @@ func (rm *ExchangeSvc) TopicSubscriptionAck(subName string, s *zbsubscriptions.S
 	return rm.UnmarshalTopicSubAck(resp), err
 }
 
-func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int) (*zbmsgpack.CreateTopic, error) {
-	topic := zbmsgpack.NewTopic(name, zbcommon.TopicCreate, partitionNum)
+func (rm *ExchangeSvc) CreateTopic(name string, partitionNum int, replicationFactor int) (*zbmsgpack.CreateTopic, error) {
+
+	if replicationFactor <= 0 { replicationFactor = 1 }
+
+	topic := zbmsgpack.NewTopic(name, zbcommon.TopicCreate, partitionNum, replicationFactor)
 	message := rm.CreateTopicRequest(topic)
 	request := zbsocket.NewRequestWrapper(message)
 

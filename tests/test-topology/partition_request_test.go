@@ -14,6 +14,7 @@ func TestGetPartitions(t *testing.T) {
 	Assert(t, nil, zbClient, false)
 
 	topology, err := zbClient.GetTopology()
+	t.Logf("%+v", topology)
 	Assert(t, nil, err, true)
 	Assert(t, nil, topology, false)
 

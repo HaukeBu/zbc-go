@@ -10,7 +10,7 @@ import (
 type LikeExchangeSvc interface {
 	zbtopology.LikeTopologySvc
 
-	CreateTopic(name string, partitionNum int) (*zbmsgpack.CreateTopic, error)
+	CreateTopic(name string, partitionNum, replicationFactor int) (*zbmsgpack.CreateTopic, error)
 	CreateTask(topic string, task *zbmsgpack.Task) (*zbmsgpack.Task, error)
 	CreateWorkflow(topic string, resources ...*zbmsgpack.Resource) (*zbmsgpack.DeployWorkflow, error)
 	CreateWorkflowFromFile(topic, resourceType, path string) (*zbmsgpack.DeployWorkflow, error)
